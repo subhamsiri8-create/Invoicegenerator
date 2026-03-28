@@ -24,6 +24,9 @@ def number_to_words(num):
         if n >= 100000:
             res += convert_less_than_thousand(n // 100000) + " Lakh "
             n %= 100000
+        if n >= 1000:
+            res += convert_less_than_thousand(n // 1000) + " Thousand "
+            n %= 1000
         if n >= 100:
             res += ones[int(n // 100)] + " Hundred "
             n %= 100
@@ -34,7 +37,7 @@ def number_to_words(num):
     if num_dec > 0: words += " and " + convert(num_dec) + " Paise"
     return words + " Only"
 
-# --- SIDEBAR: DIMENSION ENGINE ---
+# --- SIDEBAR ---
 st.sidebar.header("1. Paper Dimensions")
 size_options = {
     "A4 (Standard)": {"w": "210mm", "h": "297mm", "pg": "A4"},
@@ -47,12 +50,12 @@ size_options = {
 selected_size = st.sidebar.selectbox("Select Invoice Size", list(size_options.keys()))
 dims = size_options[selected_size]
 
-st.sidebar.header("2. Company Info")
+st.sidebar.header("2. Your Details")
 p_name = st.sidebar.text_input("Your Company Name", "").upper()
 p_addr = st.sidebar.text_area("Your Address", "")
 
 st.sidebar.subheader("3. Client Details")
-# Default for Vasavi Silks
+# Persistent Vasavi Silks default
 c_name = st.sidebar.text_input("Billed To", "VASAVI SILKS PRIVATE LIMITED")
 c_addr = st.sidebar.text_area("Client Address", "Edaravari Street\nEluru-534002\n9246663443\naccounts@vasavisilks.com")
 
@@ -105,11 +108,8 @@ html_template = f"""
         .grand-total {{ font-size: 28px; font-weight: bold; color: {prime}; }}
         .sig-line {{ border-top: 1.5px solid #000; width: 180px; margin-top: 40px; margin-left: auto; }}
 
-        /* --- PRINT CRITICAL FIXES --- */
         @media print {{
-            /* Hide Streamlit elements specifically */
             header, footer, .stAppHeader, .stDecoration, .stToolbar {{ display: none !important; }}
-            
             body {{ background: none; padding: 0; }}
             .invoice-card {{ box-shadow: none; margin: 0; width: 100%; border: none; }}
             .no-print {{ display: none !important; }}
@@ -155,7 +155,6 @@ html_template = f"""
                 <div class="grand-total">₹ ##AMT##</div>
                 <div class="sig-line"></div>
                 <div style="font-weight: bold; font-size: 12px; margin-top: 5px;">Authorized Signatory</div>
-                <div style="font-size: 10px; color: #777;">For ##PNAME##</div>
             </div>
         </div>
     </div>
