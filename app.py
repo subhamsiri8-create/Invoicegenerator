@@ -1,10 +1,9 @@
 import streamlit as st
 import streamlit.components.v1 as components
 from datetime import datetime
-import hashlib
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="Professional Invoice Generator", layout="wide")
+st.set_page_config(page_title="Invoice Generator", layout="wide")
 
 # --- INDIAN NUMBER SYSTEM LOGIC ---
 def number_to_words(num):
@@ -44,7 +43,7 @@ def number_to_words(num):
     return words + " Only"
 
 # --- SIDEBAR INPUTS ---
-st.sidebar.title("Invoice Settings")
+st.sidebar.title("Invoice Details")
 p_name = st.sidebar.text_input("Your Company", "DIGITAL MARKETING MECHANICS").upper()
 p_addr = st.sidebar.text_area("Your Address", "Eluru, Andhra Pradesh")
 c_name = st.sidebar.text_input("Client Name", "VASAVI SILKS")
@@ -54,59 +53,55 @@ inv_date = st.sidebar.date_input("Date", datetime.now())
 desc = st.sidebar.text_area("Service", "Social Media Management")
 amt = st.sidebar.number_input("Amount (INR)", value=15000.0)
 
-# --- DYNAMIC STYLE GENERATOR ---
-# Hash ensures "Company A" always gets the same unique template
-name_hash = hashlib.md5(p_name.encode()).hexdigest()
-seed = int(name_hash, 16)
-hue = (seed % 360)
-primary_color = "hsl({}, 70%, 25%)".format(hue)
-bg_color = "hsl({}, 30%, 98%)".format(hue)
-
-# --- THE HTML & CSS ---
-# We use doubled braces {{ }} for CSS to avoid Python conflict
+# --- THE SINGLE FIXED TEMPLATE ---
 html_code = """
 <!DOCTYPE html>
 <html>
 <head>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        /* CRITICAL: Removes browser headers/footers */
+        @page {{
+            size: auto;
+            margin: 0mm; 
+        }}
+
         body {{ 
-            background-color: #f0f2f6; 
+            background-color: #f7f7f7; 
             margin: 0; 
             padding: 40px; 
             font-family: 'Poppins', sans-serif; 
         }}
+
         .invoice-card {{
             max-width: 800px;
             margin: auto;
             background: white;
-            padding: 60px;
-            border-top: 20px solid {color};
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            position: relative;
+            padding: 50px;
+            border-top: 15px solid #4F7942; /* Fixed Green Theme */
+            box-shadow: 0 5px 25px rgba(0,0,0,0.1);
         }}
-        .header {{ text-align: center; border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 40px; }}
-        .header h1 {{ color: {color}; margin: 0; font-size: 30px; letter-spacing: 2px; }}
+
+        .header {{ text-align: center; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 30px; }}
+        .header h1 {{ color: #4F7942; margin: 0; font-size: 30px; }}
         
-        .info-section {{ display: flex; justify-content: space-between; margin-bottom: 40px; }}
-        .label {{ color: {color}; font-weight: bold; font-size: 11px; text-transform: uppercase; }}
+        .grid {{ display: flex; justify-content: space-between; margin-bottom: 40px; }}
+        .label {{ color: #4F7942; font-weight: bold; font-size: 12px; text-transform: uppercase; }}
         
-        .main-table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
-        .main-table th {{ background: {color}; color: white; padding: 15px; text-align: left; }}
-        .main-table td {{ padding: 15px; border-bottom: 1px solid #eee; }}
+        .table {{ width: 100%; border-collapse: collapse; margin-top: 10px; }}
+        .table th {{ background: #4F7942; color: white; padding: 12px; text-align: left; }}
+        .table td {{ padding: 15px; border-bottom: 1px solid #eee; }}
         
-        .total-wrapper {{ text-align: right; margin-top: 30px; }}
-        .grand-total {{ font-size: 32px; font-weight: bold; color: {color}; }}
+        .total-box {{ text-align: right; margin-top: 30px; }}
+        .total-amt {{ font-size: 28px; font-weight: bold; color: #4F7942; }}
         
-        .words-section {{ background: {bg}; padding: 15px; border-left: 5px solid {color}; margin-top: 30px; font-style: italic; font-size: 13px; }}
-        
-        .signature-footer {{ margin-top: 80px; display: flex; justify-content: space-between; align-items: flex-end; }}
-        .sig-box {{ text-align: right; }}
-        .sig-line {{ border-top: 2px solid #333; width: 220px; display: inline-block; margin-top: 60px; }}
-        .sig-label {{ font-weight: bold; margin-top: 5px; }}
+        .words-box {{ background: #f0f4ef; padding: 12px; border-left: 5px solid #4F7942; margin-top: 20px; font-style: italic; font-size: 13px; }}
+
+        .footer-sign {{ margin-top: 60px; display: flex; justify-content: space-between; align-items: flex-end; }}
+        .sig-line {{ border-top: 2px solid #333; width: 220px; display: inline-block; margin-top: 50px; }}
 
         @media print {{
-            body {{ background: white; padding: 0; }}
+            body {{ background: white; padding: 15mm; }}
             .invoice-card {{ box-shadow: none; border: 1px solid #eee; width: 100%; }}
             .no-print {{ display: none !important; }}
         }}
@@ -119,20 +114,20 @@ html_code = """
             <p style="color: #666;">{p_addr}</p>
         </div>
 
-        <div class="info-section">
+        <div class="grid">
             <div>
                 <div class="label">Customer</div>
-                <div style="font-size: 18px; font-weight: bold;">{c_name}</div>
-                <div>{c_addr}</div>
+                <div style="font-size: 17px; font-weight: bold;">{c_name}</div>
+                <div style="color: #555;">{c_addr}</div>
             </div>
             <div style="text-align: right;">
-                <div class="label">Invoice Info</div>
+                <div class="label">Invoice Details</div>
                 <strong># {inv_no}</strong><br>
                 {date}
             </div>
         </div>
 
-        <table class="main-table">
+        <table class="table">
             <thead>
                 <tr><th>Description</th><th style="text-align: right;">Amount</th></tr>
             </thead>
@@ -141,39 +136,36 @@ html_code = """
             </tbody>
         </table>
 
-        <div class="words-section">Rupees in words: <strong>{words}</strong></div>
+        <div class="words-box">Rupees in words: <strong>{words}</strong></div>
 
-        <div class="signature-footer">
-            <div style="font-size: 12px; color: #888;">Thank you for choosing {p_name}!</div>
-            <div class="sig-box">
-                <div class="total-wrapper">
+        <div class="footer-sign">
+            <div style="font-size: 11px; color: #888;">Thank you for your business!</div>
+            <div style="text-align: right;">
+                <div class="total-box">
                     <div class="label">Amount Due</div>
-                    <div class="grand-total">₹ {amt:,.2f}</div>
+                    <div class="total-amt">₹ {amt:,.2f}</div>
                 </div>
                 <div class="sig-line"></div>
-                <div class="sig-label">Authorized Signatory</div>
-                <div style="font-size: 11px; color: #999;">For {p_name}</div>
+                <div style="font-weight: bold; margin-top: 5px;">Authorized Signatory</div>
+                <div style="font-size: 11px; color: #777;">For {p_name}</div>
             </div>
         </div>
     </div>
 
     <div style="text-align: center; margin-top: 30px;" class="no-print">
         <button onclick="window.print()" style="
-            background: {color}; color: white; padding: 15px 40px; 
-            border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            background: #4F7942; color: white; padding: 12px 35px; 
+            border: none; border-radius: 5px; font-weight: bold; cursor: pointer;
         ">
-            🖨️ Print Invoice / Save as PDF
+            🖨️ Print Invoice
         </button>
     </div>
 </body>
 </html>
 """
 
-# --- INJECT AND RENDER ---
-final_output = html_code.format(
-    color=primary_color,
-    bg=bg_color,
+# --- RENDER ---
+final_html = html_code.format(
     p_name=p_name,
     p_addr=p_addr,
     c_name=c_name,
@@ -185,5 +177,4 @@ final_output = html_code.format(
     words=number_to_words(amt)
 )
 
-# Height set to 1200 to accommodate the signature area
-components.html(final_output, height=1200, scrolling=True)
+components.html(final_html, height=1100, scrolling=True)
