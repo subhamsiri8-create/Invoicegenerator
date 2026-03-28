@@ -4,7 +4,7 @@ from datetime import datetime
 import hashlib
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="Professional Invoice Generator", layout="wide")
+st.set_page_config(page_title="Dynamic Invoice Generator", layout="wide")
 
 # --- INDIAN NUMBER SYSTEM LOGIC ---
 def number_to_words(num):
@@ -37,22 +37,24 @@ def number_to_words(num):
     if num_dec > 0: words += " and " + convert(num_dec) + " Paise"
     return words + " Only"
 
-# --- SIDEBAR ---
+# --- SIDEBAR (ALL BLANK BY DEFAULT) ---
 st.sidebar.header("Invoice Configuration")
-p_name = st.sidebar.text_input("Your Company Name", "DIGITAL MARKETING MECHANICS").upper()
-p_addr = st.sidebar.text_area("Your Address", "Eluru, Andhra Pradesh")
+p_name = st.sidebar.text_input("Your Company Name", "").upper()
+p_addr = st.sidebar.text_area("Your Address", "")
 
-st.sidebar.subheader("Default Client Info")
-c_name = st.sidebar.text_input("Billed To", "VASAVI SILKS PRIVATE LIMITED")
-c_addr = st.sidebar.text_area("Client Address", "Edaravari Street\nEluru-534002\n9246663443\naccounts@vasavisilks.com")
+st.sidebar.subheader("Client Details")
+c_name = st.sidebar.text_input("Billed To", "")
+c_addr = st.sidebar.text_area("Client Address", "")
 
-inv_no = st.sidebar.text_input("Invoice #", "INV-2026-001")
+inv_no = st.sidebar.text_input("Invoice #", "")
 inv_date = st.sidebar.date_input("Date", datetime.now())
-desc = st.sidebar.text_area("Service", "Social Media Management")
-amt = st.sidebar.number_input("Amount (INR)", value=15000.0)
+desc = st.sidebar.text_area("Service Description", "")
+amt = st.sidebar.number_input("Amount (INR)", value=0.0)
 
 # --- PROCEDURAL DESIGN ENGINE ---
-seed_raw = hashlib.md5(p_name.encode()).hexdigest()
+# Seed is based on the company name; defaults to a neutral grey if name is empty
+seed_input = p_name if p_name else "DEFAULT"
+seed_raw = hashlib.md5(seed_input.encode()).hexdigest()
 s = int(seed_raw, 16)
 
 # Generate unique design tokens
@@ -75,12 +77,10 @@ html_template = f"""
 <head>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Montserrat:wght@400;700&family=Inter:wght@400;700&family=Raleway:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* --- GLOBAL & PRINT RESET --- */
         * {{ box-sizing: border-box; -webkit-print-color-adjust: exact; }}
         @page {{ size: A4; margin: 0mm; }}
         html, body {{ margin: 0; padding: 0; width: 100%; background: #f0f2f5; }}
         
-        /* --- MAIN WRAPPER (Prevents cutting) --- */
         .page-container {{ 
             width: 210mm; 
             min-height: 297mm; 
@@ -90,7 +90,6 @@ html_template = f"""
             font-family: {font_stack}, sans-serif;
             position: relative;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            overflow: hidden;
         }}
 
         .invoice-header {{ 
@@ -106,7 +105,7 @@ html_template = f"""
         
         .item-table {{ width: 100%; border-collapse: collapse; margin: 30px 0; }}
         .item-table th {{ background: {prime}; color: white; padding: 15px; text-align: left; }}
-        .item-table td {{ padding: 15px; border-bottom: 1px solid #eee; }}
+        .item-table td {{ padding: 15px; border-bottom: 1px solid #eee; min-height: 50px; }}
         
         .amt-words {{ background: {bg_light}; padding: 20px; border-left: 5px solid {prime}; margin: 25px 0; border-radius: 4px; font-style: italic; font-size: 14px; }}
         
@@ -116,33 +115,30 @@ html_template = f"""
         
         .doc-verify {{ font-size: 11px; color: #999; font-style: italic; }}
 
-        /* --- PRINT OVERRIDES --- */
         @media print {{
             body {{ background: none; }}
             .page-container {{ margin: 0; box-shadow: none; width: 100%; height: 100%; border: none; }}
             .no-print {{ display: none !important; }}
-            /* Prevents browser from cutting the bottom */
-            footer, header {{ display: none !important; }} 
         }}
     </style>
 </head>
 <body>
     <div class="page-container">
         <div class="invoice-header">
-            <h1>{p_name}</h1>
-            <div style="color: #666; margin-top: 5px;">{p_addr}</div>
+            <h1>{{p_name if p_name else "COMPANY NAME"}}</h1>
+            <div style="color: #666; margin-top: 5px;">{{p_addr if p_addr else "Company Address"}}</div>
         </div>
 
         <div class="info-section">
             <div>
                 <div class="label">Billed To</div>
-                <div style="font-size: 18px; font-weight: bold;">{c_name}</div>
-                <div style="white-space: pre-wrap; color: #444;">{c_addr}</div>
+                <div style="font-size: 18px; font-weight: bold;">{{c_name if c_name else "Client Name"}}</div>
+                <div style="white-space: pre-wrap; color: #444;">{{c_addr if c_addr else "Client Address"}}</div>
             </div>
             <div style="text-align: right;">
                 <div class="label">Invoice Summary</div>
-                <strong>No: {inv_no}</strong><br>
-                Date: {inv_date.strftime("%d %b, %Y")}
+                <strong>No: {{inv_no if inv_no else "---"}}</strong><br>
+                Date: {{inv_date.strftime("%d %b, %Y")}}
             </div>
         </div>
 
@@ -151,33 +147,41 @@ html_template = f"""
                 <tr><th>Description</th><th style="text-align: right;">Total Amount</th></tr>
             </thead>
             <tbody>
-                <tr><td>{desc}</td><td style="text-align: right; font-weight: bold;">₹ {amt:,.2f}</td></tr>
+                <tr><td>{{desc if desc else "Service Details"}}</td><td style="text-align: right; font-weight: bold;">₹ {{amt:,.2f}}</td></tr>
             </tbody>
         </table>
 
         <div class="amt-words">
-            <strong>Amount in words:</strong><br>{number_to_words(amt)}
+            <strong>Amount in words:</strong><br>{{number_to_words(amt)}}
         </div>
 
         <div class="invoice-footer">
             <div class="doc-verify">{footer_txt}.</div>
             <div class="sig-box">
                 <div class="label">Total Due</div>
-                <div style="font-size: 32px; font-weight: bold; color: {prime};">₹ {amt:,.2f}</div>
+                <div style="font-size: 32px; font-weight: bold; color: {prime};">₹ {{amt:,.2f}}</div>
                 <div class="sig-line"></div>
                 <div style="font-weight: bold; margin-top: 5px;">Authorized Signatory</div>
-                <div style="font-size: 11px; color: #777;">For {p_name}</div>
+                <div style="font-size: 11px; color: #777;">For {{p_name if p_name else "Company"}}</div>
             </div>
         </div>
     </div>
 
     <div class="no-print" style="text-align: center; margin: 40px 0;">
-        <button onclick="window.print()" style="background: {prime}; color: white; padding: 15px 50px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;">
-            🖨️ Print Full Page Invoice
+        <button onclick="window.print()" style="background: {prime}; color: white; padding: 15px 50px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+            🖨️ Print Invoice
         </button>
     </div>
 </body>
 </html>
 """
 
-components.html(html_template, height=1300, scrolling=True)
+# Using Python f-string formatting for the seed-based tokens and regular string replacement for input data
+# This prevents errors if braces are used in the text areas.
+components.html(html_template.replace("{{p_name}}", p_name or "COMPANY NAME")
+                            .replace("{{p_addr}}", p_addr or "Company Address")
+                            .replace("{{c_name}}", c_name or "Client Name")
+                            .replace("{{c_addr}}", c_addr or "Client Address")
+                            .replace("{{inv_no}}", inv_no or "---")
+                            .replace("{{desc}}", desc or "Service Details")
+                            .replace("{{amt}}", f"{amt:,.2f}"), height=1300, scrolling=True)
