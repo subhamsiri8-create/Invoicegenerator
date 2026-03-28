@@ -42,8 +42,8 @@ st.sidebar.header("Invoice Details")
 p_name = st.sidebar.text_input("Your Company Name", "DIGITAL MARKETING MECHANICS").upper()
 p_addr = st.sidebar.text_area("Your Address", "Eluru, Andhra Pradesh")
 
-# DEFAULT BILLED TO INFORMATION
 st.sidebar.subheader("Client Details")
+# Defaulting to Vasavi Silks details as requested
 c_name = st.sidebar.text_input("Billed To", "VASAVI SILKS PRIVATE LIMITED")
 c_addr = st.sidebar.text_area("Client Address", "Edaravari Street\nEluru-534002\n9246663443\naccounts@vasavisilks.com")
 
@@ -56,15 +56,24 @@ amt = st.sidebar.number_input("Amount (INR)", value=15000.0)
 seed_raw = hashlib.md5(p_name.encode()).hexdigest()
 s = int(seed_raw, 16)
 
-# Procedural properties based on company name
+# Procedural properties
 hue = s % 360 
 border_radius = (s % 25)
 font_choice = ["'Poppins'", "'Montserrat'", "'Raleway'", "'Inter'", "'Playfair Display'"][s % 5]
 header_align = ["left", "center", "right"][s % 3]
-border_weight = (s % 12) + 3 
-shadow_intensity = (s % 25) / 100
 prime = f"hsl({hue}, 75%, 20%)"
 bg_tint = f"hsl({hue}, 30%, 98%)"
+
+# NEW: DYNAMIC FOOTER TEXT VARIATIONS
+footer_variants = [
+    "🛡️ Authorized Digital Document",
+    "✅ Verified Electronic Invoice",
+    "✨ System Generated Official Record",
+    "📜 Authenticated Billing Statement",
+    "💎 Premium Service Receipt",
+    "🔒 Secure Digital Transaction"
+]
+selected_footer = footer_variants[s % len(footer_variants)]
 
 # --- THE GENERATIVE HTML ---
 html_template = f"""
@@ -77,9 +86,9 @@ html_template = f"""
         body {{ background: #fdfdfd; margin: 0; padding: 40px; font-family: {font_choice}, sans-serif; }}
         .invoice-card {{
             max-width: 850px; margin: auto; background: white; padding: 50px;
-            border-top: {border_weight}px solid {prime};
+            border-top: 12px solid {prime};
             border-radius: {border_radius}px;
-            box-shadow: 0 15px 50px rgba(0,0,0,{shadow_intensity});
+            box-shadow: 0 15px 50px rgba(0,0,0,0.1);
         }}
         .header {{ text-align: {header_align}; margin-bottom: 50px; border-bottom: 1px solid #eee; padding-bottom: 25px; }}
         .header h1 {{ color: {prime}; font-size: 32px; text-transform: uppercase; margin: 0; letter-spacing: 1px; }}
@@ -88,9 +97,19 @@ html_template = f"""
         .table {{ width: 100%; border-collapse: collapse; margin: 30px 0; }}
         .table th {{ background: {prime}; color: white; padding: 15px; text-align: left; }}
         .table td {{ padding: 15px; border-bottom: 1px solid #eee; }}
-        .words-box {{ background: {bg_tint}; padding: 20px; border-left: 6px solid {prime}; border-radius: 4px; margin: 20px 0; font-style: italic; }}
+        .words-box {{ background: {bg_tint}; padding: 20 :px; border-left: 6px solid {prime}; border-radius: 4px; margin: 20px 0; font-style: italic; }}
         .footer {{ margin-top: 70px; display: flex; justify-content: space-between; align-items: flex-end; }}
         .sig-line {{ border-top: 2px solid #333; width: 220px; margin-top: 50px; }}
+        
+        /* Styled Dynamic Footer Text */
+        .dynamic-footer-text {{ 
+            font-size: 12px; 
+            color: {prime}; 
+            opacity: 0.7; 
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }}
+
         @media print {{
             body {{ background: white; padding: 15mm; }}
             .invoice-card {{ box-shadow: none; border: 1px solid #eee; width: 100%; }}
@@ -122,7 +141,7 @@ html_template = f"""
         </table>
         <div class="words-box"><strong>Rupees in Words:</strong><br>{number_to_words(amt)}</div>
         <div class="footer">
-            <div style="font-size: 11px; color: #aaa;">Authorized digital document.</div>
+            <div class="dynamic-footer-text">{selected_footer}</div>
             <div style="text-align: right;">
                 <div class="label">Grand Total</div>
                 <div style="font-size: 32px; font-weight: bold; color: {prime};">₹ {amt:,.2f}</div>
