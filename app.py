@@ -4,7 +4,7 @@ from datetime import datetime
 import hashlib
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="Professional Invoice Studio", layout="wide")
+st.set_page_config(page_title="Invoice Studio Pro", layout="wide")
 
 # --- INDIAN NUMBER SYSTEM LOGIC ---
 def number_to_words(num):
@@ -37,153 +37,133 @@ def number_to_words(num):
     if num_dec > 0: words += " and " + convert(num_dec) + " Paise"
     return words + " Only"
 
-# --- SIDEBAR ---
-st.sidebar.header("1. Document Size")
-inv_size = st.sidebar.radio("Select Print Size", ["Standard A4", "Compact Receipt"])
+# --- SIDEBAR CONTROLS ---
+st.sidebar.header("Settings")
+inv_size = st.sidebar.selectbox("Page Size", ["Standard A4", "Compact Receipt"])
 
-st.sidebar.header("2. Company Info")
+# Blank defaults for your agency
 p_name = st.sidebar.text_input("Your Company Name", "").upper()
 p_addr = st.sidebar.text_area("Your Address", "")
 
-st.sidebar.subheader("3. Client Details")
-# Defaulting to Vasavi Silks as requested
-c_name = st.sidebar.text_input("Billed To", "VASAVI SILKS PRIVATE LIMITED")
+st.sidebar.subheader("Billing To")
+# Persistent default for Vasavi Silks
+c_name = st.sidebar.text_input("Client Name", "VASAVI SILKS PRIVATE LIMITED")
 c_addr = st.sidebar.text_area("Client Address", "Edaravari Street\nEluru-534002\n9246663443\naccounts@vasavisilks.com")
 
-st.sidebar.subheader("4. Invoice Data")
-inv_no = st.sidebar.text_input("Invoice #", "")
+st.sidebar.subheader("Invoice Data")
+inv_no = st.sidebar.text_input("Invoice #", "INV-2026-001")
 inv_date = st.sidebar.date_input("Date", datetime.now())
-desc = st.sidebar.text_area("Service Description", "")
-amt = st.sidebar.number_input("Amount (INR)", value=0.0)
+desc = st.sidebar.text_area("Service", "Digital Marketing Services")
+amt = st.sidebar.number_input("Total Amount (INR)", value=0.0, step=500.0)
 
-# --- PROCEDURAL DESIGN ENGINE ---
-seed_input = p_name if p_name else "DEFAULT"
-s = int(hashlib.md5(seed_input.encode()).hexdigest(), 16)
+# --- DESIGN ENGINE ---
+seed_text = p_name if p_name else "GENERIC"
+s = int(hashlib.md5(seed_text.encode()).hexdigest(), 16)
 
-# Design Tokens
-hue = s % 360 
-prime = f"hsl({hue}, 70%, 25%)"
-bg_soft = f"hsl({hue}, 20%, 97%)"
-font = ["'Poppins'", "'Inter'", "'Montserrat'", "'Playfair Display'"][s % 4]
-layout_mode = s % 3 # 0: Modern, 1: Classic, 2: Minimalist
+# Procedural Styles
+hues = [210, 145, 0, 330, 260] # Blue, Green, Orange, Pink, Purple
+color_base = hues[s % len(hues)]
+prime = f"hsl({color_base}, 80%, 20%)"
+font_f = ["'Poppins'", "'Inter'", "'Montserrat'"][s % 3]
 
-# Physical Dimensions
-width = "210mm" if inv_size == "Standard A4" else "120mm"
-min_height = "297mm" if inv_size == "Standard A4" else "180mm"
+# Dimensions
+w_val = "210mm" if inv_size == "Standard A4" else "140mm"
+h_val = "297mm" if inv_size == "Standard A4" else "200mm"
 
-# Procedural Layout Logic
-header_style = "display: flex; justify-content: space-between;" if layout_mode == 0 else "text-align: center;"
-table_style = "border: 1px solid #eee;" if layout_mode == 1 else "border: none;"
-
-# --- HTML TEMPLATE ---
+# --- HTML TEMPLATE (Brace-Free Placeholder Logic) ---
 html_template = f"""
 <!DOCTYPE html>
 <html>
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Inter:wght@400;700&family=Montserrat:wght@400;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Inter:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * {{ box-sizing: border-box; -webkit-print-color-adjust: exact; }}
-        @page {{ size: {inv_size.split()[-1]}; margin: 0mm; }}
-        body {{ background: #f4f7f6; margin: 0; padding: 20px; font-family: {font}, sans-serif; }}
-        
-        .invoice-box {{
-            width: {width};
-            min-height: {min_height};
-            padding: 15mm;
-            margin: auto;
-            background: white;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-            position: relative;
+        @page {{ size: A4; margin: 0mm; }}
+        body {{ background: #eee; margin: 0; padding: 20px; font-family: {font_f}, sans-serif; }}
+        .sheet {{
+            background: white; width: {w_val}; min-height: {h_val};
+            margin: auto; padding: 20mm; position: relative;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }}
-
-        .header-bar {{ {header_style} border-bottom: 4px solid {prime}; padding-bottom: 20px; margin-bottom: 30px; }}
-        .header-bar h1 {{ color: {prime}; margin: 0; text-transform: uppercase; font-size: 28px; }}
-        
-        .meta-grid {{ display: flex; justify-content: space-between; margin-bottom: 40px; font-size: 14px; }}
-        .label {{ color: {prime}; font-weight: bold; font-size: 10px; text-transform: uppercase; margin-bottom: 4px; }}
-        
-        .main-table {{ width: 100%; border-collapse: collapse; margin: 20px 0; {table_style} }}
-        .main-table th {{ background: {prime}; color: white; padding: 12px; text-align: left; }}
-        .main-table td {{ padding: 15px; border-bottom: 1px solid #eee; }}
-        
-        .words-section {{ background: {bg_soft}; padding: 15px; border-radius: 4px; border-left: 4px solid {prime}; margin: 20px 0; font-style: italic; font-size: 13px; }}
-        
-        .footer-area {{ margin-top: 60px; display: flex; justify-content: space-between; align-items: flex-end; }}
-        .total-display {{ color: {prime}; font-size: 32px; font-weight: bold; }}
-        .signature-line {{ border-top: 2px solid #333; width: 180px; margin-top: 50px; margin-left: auto; }}
-
+        .top-stripe {{ height: 8px; background: {prime}; margin: -20mm -20mm 30px -20mm; }}
+        .header {{ display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 20px; }}
+        .co-name {{ color: {prime}; font-size: 28px; font-weight: bold; text-transform: uppercase; }}
+        .grid {{ display: flex; justify-content: space-between; margin: 40px 0; }}
+        .tag {{ color: {prime}; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }}
+        .table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
+        .table th {{ background: #f9f9f9; text-align: left; padding: 12px; color: {prime}; border-bottom: 2px solid {prime}; }}
+        .table td {{ padding: 15px; border-bottom: 1px solid #eee; }}
+        .total-box {{ text-align: right; margin-top: 40px; }}
+        .grand-total {{ font-size: 32px; font-weight: bold; color: {prime}; }}
+        .words {{ font-style: italic; color: #666; font-size: 13px; margin-top: 20px; padding: 10px; border-left: 3px solid {prime}; background: #fafafa; }}
+        .footer {{ position: absolute; bottom: 20mm; left: 20mm; right: 20mm; display: flex; justify-content: space-between; align-items: flex-end; }}
+        .sig-line {{ border-top: 2px solid #000; width: 200px; margin-bottom: 5px; }}
         @media print {{
             body {{ background: white; padding: 0; }}
-            .invoice-box {{ box-shadow: none; margin: 0; width: 100%; border: none; }}
+            .sheet {{ box-shadow: none; margin: 0; width: 100%; }}
             .no-print {{ display: none !important; }}
         }}
     </style>
 </head>
 <body>
-    <div class="invoice-box">
-        <div class="header-bar">
+    <div class="sheet">
+        <div class="top-stripe"></div>
+        <div class="header">
             <div>
-                <h1>{{p_name}}</h1>
-                <div style="color: #666;">{{p_addr}}</div>
+                <div class="co-name">##PNAME##</div>
+                <div style="color: #666;">##PADDR##</div>
             </div>
             <div style="text-align: right;">
-                <div class="label">Invoice #</div>
-                <strong>{{inv_no}}</strong><br>
-                {{inv_date}}
+                <div class="tag">Invoice Details</div>
+                <strong># ##INVNO##</strong><br>
+                ##DATE##
             </div>
         </div>
 
-        <div class="meta-grid">
+        <div class="grid">
             <div>
-                <div class="label">Client Information</div>
-                <div style="font-size: 16px; font-weight: bold;">{{c_name}}</div>
-                <div style="white-space: pre-wrap;">{{c_addr}}</div>
+                <div class="tag">Billed To</div>
+                <div style="font-size: 18px; font-weight: bold;">##CNAME##</div>
+                <div style="white-space: pre-wrap; color: #444;">##CADDR##</div>
             </div>
         </div>
 
-        <table class="main-table">
-            <thead>
-                <tr><th>Description of Service</th><th style="text-align: right;">Amount</th></tr>
-            </thead>
-            <tbody>
-                <tr><td>{{desc}}</td><td style="text-align: right; font-weight: bold;">₹ {{amt}}</td></tr>
-            </tbody>
+        <table class="table">
+            <thead><tr><th>Description</th><th style="text-align: right;">Amount</th></tr></thead>
+            <tbody><tr><td>##DESC##</td><td style="text-align: right; font-weight: bold;">₹ ##AMT##</td></tr></tbody>
         </table>
 
-        <div class="words-section">
-            <strong>Amount in words:</strong><br>{{words}}
-        </div>
+        <div class="words"><strong>Amount in Words:</strong><br>##WORDS##</div>
 
-        <div class="footer-area">
-            <div style="font-size: 11px; color: #999;">System Generated Official Record.</div>
-            <div style="text-align: right;">
-                <div class="label">Total Amount Due</div>
-                <div class="total-display">₹ {{amt}}</div>
-                <div class="signature-line"></div>
-                <div style="font-weight: bold; margin-top: 5px;">Authorized Signatory</div>
-                <div style="font-size: 11px; color: #777;">For {{p_name}}</div>
+        <div class="footer">
+            <div style="font-size: 10px; color: #aaa;">Authorized Digital Document</div>
+            <div class="total-box">
+                <div class="tag">Total Amount Due</div>
+                <div class="grand-total">₹ ##AMT##</div>
+                <div style="margin-top: 40px;">
+                    <div class="sig-line"></div>
+                    <div style="font-weight: bold;">Authorized Signatory</div>
+                    <div style="font-size: 11px; color: #888;">For ##PNAME##</div>
+                </div>
             </div>
         </div>
     </div>
-
     <div class="no-print" style="text-align: center; margin-top: 30px;">
-        <button onclick="window.print()" style="background: {prime}; color: white; padding: 14px 40px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">
-            🖨️ Print {inv_size} Invoice
-        </button>
+        <button onclick="window.print()" style="background: {prime}; color: white; padding: 15px 60px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 16px;">PRINT INVOICE</button>
     </div>
 </body>
 </html>
 """
 
-# Manual placeholder replacement for safety
-final_html = html_template.replace("{{p_name}}", p_name if p_name else "YOUR COMPANY") \
-                          .replace("{{p_addr}}", p_addr if p_addr else "Address Line") \
-                          .replace("{{c_name}}", c_name if c_name else "Client Name") \
-                          .replace("{{c_addr}}", c_addr if c_addr else "Client Details") \
-                          .replace("{{inv_no}}", inv_no if inv_no else "---") \
-                          .replace("{{inv_date}}", inv_date.strftime("%d %b, %Y")) \
-                          .replace("{{desc}}", desc if desc else "Service Description") \
-                          .replace("{{amt}}", f"{amt:,.2f}") \
-                          .replace("{{words}}", number_to_words(amt))
+# Replace placeholders with actual data
+final_html = html_template.replace("##PNAME##", p_name if p_name else "YOUR COMPANY NAME") \
+                          .replace("##PADDR##", p_addr if p_addr else "Company Address Line") \
+                          .replace("##CNAME##", c_name) \
+                          .replace("##CADDR##", c_addr) \
+                          .replace("##INVNO##", inv_no) \
+                          .replace("##DATE##", inv_date.strftime("%d %b, %Y")) \
+                          .replace("##DESC##", desc) \
+                          .replace("##AMT##", f"{amt:,.2f}") \
+                          .replace("##WORDS##", number_to_words(amt))
 
-components.html(final_html, height=1400, scrolling=True)
+components.html(final_html, height=1300, scrolling=True)
