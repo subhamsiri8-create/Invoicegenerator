@@ -39,16 +39,20 @@ def number_to_words(num):
 
 # --- SIDEBAR ---
 st.sidebar.header("Invoice Details")
-p_name = st.sidebar.text_input("Company Name", "DIGITAL MARKETING MECHANICS").upper()
-p_addr = st.sidebar.text_area("Address", "Eluru, Andhra Pradesh")
-c_name = st.sidebar.text_input("Billed To", "VASAVI SILKS")
-c_addr = st.sidebar.text_area("Client Address", "Mumbai, Maharashtra")
+p_name = st.sidebar.text_input("Your Company Name", "DIGITAL MARKETING MECHANICS").upper()
+p_addr = st.sidebar.text_area("Your Address", "Eluru, Andhra Pradesh")
+
+# DEFAULT BILLED TO INFORMATION
+st.sidebar.subheader("Client Details")
+c_name = st.sidebar.text_input("Billed To", "VASAVI SILKS PRIVATE LIMITED")
+c_addr = st.sidebar.text_area("Client Address", "Edaravari Street\nEluru-534002\n9246663443\naccounts@vasavisilks.com")
+
 inv_no = st.sidebar.text_input("Invoice #", "INV-2026-001")
 inv_date = st.sidebar.date_input("Date", datetime.now())
-desc = st.sidebar.text_area("Service", "Social Media Management")
+desc = st.sidebar.text_area("Service Description", "Social Media Management")
 amt = st.sidebar.number_input("Amount (INR)", value=15000.0)
 
-# --- GENERATIVE DESIGN ENGINE (1,000,000+ Combinations) ---
+# --- GENERATIVE DESIGN ENGINE ---
 seed_raw = hashlib.md5(p_name.encode()).hexdigest()
 s = int(seed_raw, 16)
 
@@ -58,9 +62,9 @@ border_radius = (s % 25)
 font_choice = ["'Poppins'", "'Montserrat'", "'Raleway'", "'Inter'", "'Playfair Display'"][s % 5]
 header_align = ["left", "center", "right"][s % 3]
 border_weight = (s % 12) + 3 
-shadow_intensity = (s % 30) / 100
-bg_tint = f"hsl({hue}, 30%, 98%)"
+shadow_intensity = (s % 25) / 100
 prime = f"hsl({hue}, 75%, 20%)"
+bg_tint = f"hsl({hue}, 30%, 98%)"
 
 # --- THE GENERATIVE HTML ---
 html_template = f"""
@@ -101,8 +105,16 @@ html_template = f"""
             <div style="color: #666; font-size: 14px; margin-top: 5px;">{p_addr}</div>
         </div>
         <div class="grid">
-            <div><div class="label">Billed To</div><div style="font-size: 18px; font-weight: bold;">{c_name}</div>{c_addr}</div>
-            <div style="text-align: right;"><div class="label">Invoice Details</div><strong># {inv_no}</strong><br>{inv_date.strftime("%d %b, %Y")}</div>
+            <div>
+                <div class="label">Billed To</div>
+                <div style="font-size: 18px; font-weight: bold;">{c_name}</div>
+                <div style="white-space: pre-wrap; color: #444;">{c_addr}</div>
+            </div>
+            <div style="text-align: right;">
+                <div class="label">Invoice Details</div>
+                <strong># {inv_no}</strong><br>
+                {inv_date.strftime("%d %b, %Y")}
+            </div>
         </div>
         <table class="table">
             <thead><tr><th>Description of Service</th><th style="text-align: right;">Amount</th></tr></thead>
@@ -112,8 +124,10 @@ html_template = f"""
         <div class="footer">
             <div style="font-size: 11px; color: #aaa;">Authorized digital document.</div>
             <div style="text-align: right;">
-                <div class="label">Grand Total</div><div style="font-size: 32px; font-weight: bold; color: {prime};">₹ {amt:,.2f}</div>
-                <div class="sig-line"></div><div style="font-weight: bold; margin-top: 5px;">Authorized Signatory</div>
+                <div class="label">Grand Total</div>
+                <div style="font-size: 32px; font-weight: bold; color: {prime};">₹ {amt:,.2f}</div>
+                <div class="sig-line"></div>
+                <div style="font-weight: bold; margin-top: 5px;">Authorized Signatory</div>
                 <div style="font-size: 11px; color: #888;">For {p_name}</div>
             </div>
         </div>
