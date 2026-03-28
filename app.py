@@ -38,7 +38,7 @@ def number_to_words(num):
     return words + " Only"
 
 # --- SIDEBAR ---
-st.sidebar.header("Dimensions")
+st.sidebar.header("1. Dimensions")
 size_options = {
     "A4 (Standard)": {"w": "210mm", "h": "297mm", "pg": "A4"},
     "Letter": {"w": "216mm", "h": "279mm", "pg": "letter"},
@@ -50,15 +50,16 @@ size_options = {
 selected_size = st.sidebar.selectbox("Select Size", list(size_options.keys()))
 dims = size_options[selected_size]
 
-st.sidebar.header("Company Details")
+st.sidebar.header("2. Your Details")
 p_name = st.sidebar.text_input("Your Company Name", "").upper()
 p_addr = st.sidebar.text_area("Your Address", "")
 
-st.sidebar.subheader("Client (Default: Vasavi)")
+st.sidebar.subheader("3. Client (Default: Vasavi)")
+# Hardcoded default
 c_name = st.sidebar.text_input("Billed To", "VASAVI SILKS PRIVATE LIMITED")
 c_addr = st.sidebar.text_area("Client Address", "Edaravari Street\nEluru-534002\n9246663443\naccounts@vasavisilks.com")
 
-st.sidebar.subheader("Invoice Data")
+st.sidebar.subheader("4. Invoice Data")
 inv_no = st.sidebar.text_input("Invoice #", "INV-2026-001")
 inv_date = st.sidebar.date_input("Date", datetime.now())
 desc = st.sidebar.text_area("Service", "")
@@ -68,25 +69,24 @@ amt = st.sidebar.number_input("Amount (INR)", value=0.0)
 seed_val = p_name if p_name else "BASE_STYLE"
 s = int(hashlib.md5(seed_val.encode()).hexdigest(), 16)
 
-# 1. Color Selection
-hues = [210, 160, 25, 340, 280, 200, 10] # Blue, Green, Orange, Crimson, Purple, Cyan, Deep Red
+# Color Logic
+hues = [210, 160, 25, 340, 280, 200, 10] 
 primary = f"hsl({hues[s % len(hues)]}, 70%, 25%)"
 accent_bg = f"hsl({hues[s % len(hues)]}, 20%, 97%)"
 
-# 2. Style Logic
+# Style Logic
 style_mode = s % 4 
 font_f = ["'Poppins'", "'Inter'", "'Montserrat'", "'Playfair Display'"][s % 4]
 
-# Style definitions
 styles = {
     0: {"name": "Modern", "border": f"4px solid {primary}", "header_align": "space-between"},
-    1: {"name": "Executive", "border": "none", "header_align": "center", "bg": primary, "text": "white"},
+    1: {"name": "Executive", "border": "none", "header_align": "center"},
     2: {"name": "Minimal", "border": "1px solid #eee", "header_align": "flex-start"},
     3: {"name": "Creative", "border": f"1px dashed {primary}", "header_align": "space-between"}
 }
 curr_style = styles[style_mode]
 
-# --- THE HTML TEMPLATE ---
+# --- HTML TEMPLATE ---
 html_template = f"""
 <!DOCTYPE html>
 <html>
@@ -157,7 +157,7 @@ html_template = f"""
         </div>
 
         <table class="table">
-            <thead><tr><th>Service Description</th><th style="text-align: right;">Total Amount</th></tr></thead>
+            <thead><tr><th>Description</th><th style="text-align: right;">Total Amount</th></tr></thead>
             <tbody><tr><td>##DESC##</td><td style="text-align: right; font-weight: bold; font-size: 18px;">₹ ##AMT##</td></tr></tbody>
         </table>
 
@@ -166,8 +166,7 @@ html_template = f"""
         </div>
 
         <div class="footer-grid">
-            <div style="font-size: 11px; color: #999;">{curr_style['name']} Series Document</div>
-            <div style="text-align: right;">
+            <div></div> <div style="text-align: right;">
                 <div class="label">Total Amount Payable</div>
                 <div class="grand-total">₹ ##AMT##</div>
                 <div class="sig-line"></div>
@@ -177,7 +176,7 @@ html_template = f"""
     </div>
     <div class="no-print" style="text-align: center; margin-top: 30px;">
         <button onclick="window.print()" style="background: {primary}; color: white; padding: 15px 50px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">
-            PRINT {selected_size} INVOICE
+            PRINT INVOICE
         </button>
     </div>
 </body>
@@ -186,7 +185,7 @@ html_template = f"""
 
 # Dynamic Replacement
 final_html = html_template.replace("##PNAME##", p_name if p_name else "COMPANY NAME") \
-                          .replace("##PADDR##", p_addr if p_addr else "Company Address") \
+                          .replace("##PADDR##", p_addr if p_addr else "Address") \
                           .replace("##CNAME##", c_name) \
                           .replace("##CADDR##", c_addr) \
                           .replace("##INVNO##", inv_no) \
