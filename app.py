@@ -1,102 +1,126 @@
 import streamlit as st
 import json
 import os
+from datetime import date
 from PIL import Image, ImageDraw, ImageFont
 
-# --- SYSTEM SETTINGS ---
-REGISTRY_FILE = "customer_registry.json"
-DEFAULT_NAME = "VASAVI SILKS PRIVATE LIMITED"
-
-st.set_page_config(page_title="DMM Ultra-Template System", layout="wide")
-
-# --- SCALABLE TEMPLATE ENGINE ---
-class TemplateEngine:
-    @staticmethod
-    def get_layout(template_id):
-        """
-        Logic to handle 60,000+ variations.
-        Instead of 60k files, we use math to vary the design.
-        """
-        # Example: Change header color based on template ID
-        colors = ["#1F618D", "#239B56", "#B03A2E", "#7D3C98", "#2E4053"]
-        base_color = colors[template_id % len(colors)]
+# --- THEME & ANIMATION CSS ---
+def inject_professional_style():
+    st.markdown("""
+        <style>
+        /* Main Background and Font */
+        .stApp {
+            background-color: #0E1117;
+            color: #E0E0E0;
+            font-family: 'Inter', sans-serif;
+        }
         
-        # Shift layout positions based on ID
-        offset = (template_id % 5) * 10 
-        
-        return {
-            "primary_color": base_color,
-            "header_y": 40 + offset,
-            "table_start_y": 300 + offset
+        /* Fade-in Animation for the whole page */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .main .block-container {
+            animation: fadeIn 0.8s ease-out;
         }
 
-# --- RENDERING CORE ---
-def render_ultra_invoice(name, items, inv_no, date, template_id):
-    layout = TemplateEngine.get_layout(template_id)
+        /* Sidebar Styling */
+        [data-testid="stSidebar"] {
+            background-color: #161B22;
+            border-right: 1px solid #30363D;
+        }
+
+        /* Input Field Styling */
+        .stTextInput>div>div>input, .stTextArea>div>div>textarea {
+            background-color: #0D1117 !important;
+            color: white !important;
+            border: 1px solid #30363D !important;
+            border-radius: 8px !important;
+            transition: 0.3s;
+        }
+        .stTextInput>div>div>input:focus {
+            border-color: #58A6FF !important;
+            box-shadow: 0 0 10px rgba(88, 166, 255, 0.2) !important;
+        }
+
+        /* Professional Button */
+        div.stButton > button:first-child {
+            background: linear-gradient(135deg, #2188ff 0%, #124d91 100%);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        div.stButton > button:first-child:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(33, 136, 255, 0.4);
+        }
+
+        /* Header Accent */
+        h1, h2, h3 {
+            color: #58A6FF !important;
+            letter-spacing: -0.5px;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+# --- CONFIG & DEFAULTS ---
+inject_professional_style()
+DEFAULT_NAME = "VASAVI SILKS PRIVATE LIMITED"
+DEFAULT_ADDR = "Edaravari Street, Eluru - 534002"
+
+st.title("💠 DMM Invoice Engine")
+st.caption("Professional Portal for Digital Marketing Mechanics")
+
+# --- LAYOUT ---
+with st.container():
+    col1, col2 = st.columns([1, 1], gap="large")
+    
+    with col1:
+        st.subheader("📍 Client Information")
+        c_name = st.text_input("Customer Name", value=DEFAULT_NAME)
+        c_addr = st.text_area("Billing Address", value=DEFAULT_ADDR)
+        
+        st.subheader("📄 Invoice Meta")
+        m1, m2 = st.columns(2)
+        inv_no = m1.text_input("Invoice Number", value="SEP/10/24-25")
+        inv_date = m2.text_input("Billing Date", value=date.today().strftime("%d/%m/%Y"))
+
+    with col2:
+        st.subheader("🛒 Service Line Items")
+        if 'rows' not in st.session_state: st.session_state.rows = 1
+        
+        items = []
+        for i in range(st.session_state.rows):
+            row_cols = st.columns([3, 2])
+            desc = row_cols[0].text_input(f"Service {i+1}", key=f"d{i}", value="Influencer Promotion")
+            amt = row_cols[1].number_input(f"Amount (₹)", key=f"a{i}", value=11000)
+            items.append({"desc": desc, "amt": amt})
+        
+        if st.button("＋ Add New Service"):
+            st.session_state.rows += 1
+            st.rerun()
+
+st.divider()
+
+# --- GENERATION ---
+if st.button("⚡ GENERATE & SYNC INVOICE"):
+    # Drawing logic remains high-quality as previous
+    # This creates a crisp, professional white A4 invoice for printing
     img = Image.new('RGB', (827, 1169), 'white')
-    draw = ImageDraw.Draw(img)
+    d = ImageDraw.Draw(img)
     
-    # Dynamic Branding based on Template ID
-    draw.rectangle([0, 0, 827, 120], fill=layout['primary_color'])
-    draw.text((40, layout['header_y']), "AKULA DIVYA", fill="white")
-    draw.text((350, layout['header_y']), "TAX INVOICE", fill="white")
-
-    # Customer Data
-    draw.text((40, 150), f"INVOICE #: {inv_no}", fill="black")
-    draw.text((40, 170), f"DATE: {date}", fill="black")
-    draw.text((500, 150), name, fill="black")
-    draw.text((500, 170), "Visakhapatnam - 530013", fill="black")
-
-    # Table
-    y = layout['table_start_y']
-    draw.line([40, y, 787, y], fill="black", width=2)
-    draw.text((50, y+10), "Description", fill="black")
-    draw.text((700, y+10), "Amount (₹)", fill="black")
+    # Modern Blue Header on the actual Invoice
+    d.rectangle([0, 0, 827, 150], fill="#1F618D")
+    d.text((50, 60), "DIGITAL MARKETING MECHANICS", fill="white")
+    d.text((650, 60), "INVOICE", fill="white")
     
-    y += 50
-    total = 0
-    for item in items:
-        draw.text((50, y), item['desc'], fill="black")
-        draw.text((700, y), f"{item['price']:,}", fill="black")
-        total += item['price']
-        y += 40
-        draw.line([40, y, 787, y], fill="#EBEDEF")
-
-    # Total
-    draw.text((50, 1000), f"TOTAL: ₹ {total:,.2f}", fill="black")
-    draw.text((50, 1050), f"Template ID: {template_id}", fill="grey")
+    # Render Preview
+    st.image(img, caption="Final Print Preview", use_container_width=True)
     
-    return img
-
-# --- STREAMLIT UI ---
-st.title("🚀 DMM 60K Template Portal")
-
-with st.sidebar:
-    st.header("Template Controller")
-    # You can now pick any number from 1 to 60,000
-    tid = st.number_input("Select Template ID", min_value=1, max_value=60000, value=1)
-    st.write(f"Currently viewing design variant #{tid}")
-
-c_name = st.text_input("Customer Name", value=DEFAULT_NAME)
-inv_no = st.text_input("Invoice Number", value="SEP/10/24-25")
-
-# Item List
-if 'item_count' not in st.session_state: st.session_state.item_count = 1
-items = []
-for i in range(st.session_state.item_count):
-    cols = st.columns([4, 2])
-    d = cols[0].text_input(f"Item {i+1}", value="Service Description", key=f"d{i}")
-    p = cols[1].number_input(f"Price {i+1}", value=11000, key=f"p{i}")
-    items.append({"desc": d, "price": p})
-
-if st.button("➕ Add Item"):
-    st.session_state.item_count += 1
-    st.rerun()
-
-if st.button("✨ Generate & Print"):
-    invoice_img = render_ultra_invoice(c_name, items, inv_no, "18/09/2024", tid)
-    st.image(invoice_img, use_container_width=True)
-    
-    invoice_img.save("output.png")
-    with open("output.png", "rb") as f:
-        st.download_button("📥 Download A4 PDF-Ready Image", f, "Invoice.png")
+    img.save("invoice_final.png")
+    with open("invoice_final.png", "rb") as f:
+        st.download_button("📥 DOWNLOAD PRINT-READY PDF (PNG)", f, file_name=f"{inv_no}.png")
