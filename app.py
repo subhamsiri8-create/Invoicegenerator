@@ -4,7 +4,7 @@ from datetime import datetime
 import hashlib
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="Professional Invoice Studio", layout="wide")
+st.set_page_config(page_title="Invoice Generator", layout="wide")
 
 # --- INDIAN NUMBER SYSTEM LOGIC ---
 def number_to_words(num):
@@ -24,9 +24,6 @@ def number_to_words(num):
         if n >= 100000:
             res += convert_less_than_thousand(n // 100000) + " Lakh "
             n %= 100000
-        if n >= 1000:
-            res += convert_less_than_thousand(n // 1000) + " Thousand "
-            n %= 1000
         if n >= 100:
             res += ones[int(n // 100)] + " Hundred "
             n %= 100
@@ -42,10 +39,10 @@ st.sidebar.header("1. Paper Dimensions")
 size_options = {
     "A4 (Standard)": {"w": "210mm", "h": "297mm", "pg": "A4"},
     "Letter (US/Canada)": {"w": "216mm", "h": "279mm", "pg": "letter"},
-    "Half Sheet (Invoice Book)": {"w": "216mm", "h": "140mm", "pg": "landscape"},
-    "Legal (Detailed)": {"w": "216mm", "h": "356mm", "pg": "legal"},
-    "A5 (Compact/Receipt)": {"w": "148mm", "h": "210mm", "pg": "A5"},
-    "DL (Envelope Friendly)": {"w": "99mm", "h": "210mm", "pg": "DL"}
+    "Half Sheet": {"w": "216mm", "h": "140mm", "pg": "landscape"},
+    "Legal": {"w": "216mm", "h": "356mm", "pg": "legal"},
+    "A5": {"w": "148mm", "h": "210mm", "pg": "A5"},
+    "DL": {"w": "99mm", "h": "210mm", "pg": "DL"}
 }
 selected_size = st.sidebar.selectbox("Select Invoice Size", list(size_options.keys()))
 dims = size_options[selected_size]
@@ -55,7 +52,7 @@ p_name = st.sidebar.text_input("Your Company Name", "").upper()
 p_addr = st.sidebar.text_area("Your Address", "")
 
 st.sidebar.subheader("3. Client Details")
-# Defaulting to Vasavi Silks
+# Default for Vasavi Silks
 c_name = st.sidebar.text_input("Billed To", "VASAVI SILKS PRIVATE LIMITED")
 c_addr = st.sidebar.text_area("Client Address", "Edaravari Street\nEluru-534002\n9246663443\naccounts@vasavisilks.com")
 
@@ -65,14 +62,14 @@ inv_date = st.sidebar.date_input("Date", datetime.now())
 desc = st.sidebar.text_area("Description", "")
 amt = st.sidebar.number_input("Amount (INR)", value=0.0)
 
-# --- PROCEDURAL DESIGN ENGINE ---
+# --- DESIGN ENGINE ---
 seed_val = p_name if p_name else "BASE"
 s = int(hashlib.md5(seed_val.encode()).hexdigest(), 16)
 hue = s % 360
 prime = f"hsl({hue}, 75%, 20%)"
 font_choice = ["'Poppins'", "'Inter'", "'Montserrat'"][s % 3]
 
-# --- HTML TEMPLATE (Safe Placeholder Method) ---
+# --- THE HTML TEMPLATE ---
 html_template = f"""
 <!DOCTYPE html>
 <html>
@@ -108,7 +105,11 @@ html_template = f"""
         .grand-total {{ font-size: 28px; font-weight: bold; color: {prime}; }}
         .sig-line {{ border-top: 1.5px solid #000; width: 180px; margin-top: 40px; margin-left: auto; }}
 
+        /* --- PRINT CRITICAL FIXES --- */
         @media print {{
+            /* Hide Streamlit elements specifically */
+            header, footer, .stAppHeader, .stDecoration, .stToolbar {{ display: none !important; }}
+            
             body {{ background: none; padding: 0; }}
             .invoice-card {{ box-shadow: none; margin: 0; width: 100%; border: none; }}
             .no-print {{ display: none !important; }}
@@ -148,7 +149,7 @@ html_template = f"""
         </div>
 
         <div class="footer-section">
-            <div style="font-size: 10px; color: #999;"></div>
+            <div></div>
             <div class="total-box">
                 <div class="label">Total Amount Payable</div>
                 <div class="grand-total">₹ ##AMT##</div>
@@ -160,16 +161,16 @@ html_template = f"""
     </div>
     <div class="no-print" style="text-align: center; margin-top: 30px;">
         <button onclick="window.print()" style="background: {prime}; color: white; padding: 12px 40px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
-            PRINT {selected_size.upper()}
+            PRINT INVOICE
         </button>
     </div>
 </body>
 </html>
 """
 
-# Dynamic Replacement
+# Dynamic Replacement Logic
 final_html = html_template.replace("##PNAME##", p_name if p_name else "COMPANY NAME") \
-                          .replace("##PADDR##", p_addr if p_addr else "Company Address") \
+                          .replace("##PADDR##", p_addr if p_addr else "Address Details") \
                           .replace("##CNAME##", c_name) \
                           .replace("##CADDR##", c_addr) \
                           .replace("##INVNO##", inv_no) \
@@ -178,4 +179,4 @@ final_html = html_template.replace("##PNAME##", p_name if p_name else "COMPANY N
                           .replace("##AMT##", f"{amt:,.2f}") \
                           .replace("##WORDS##", number_to_words(amt))
 
-components.html(final_html, height=1200, scrolling=True)
+components.html(final_html, height=1300, scrolling=True)
