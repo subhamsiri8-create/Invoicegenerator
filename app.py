@@ -1,9 +1,8 @@
 import streamlit as st
 from datetime import datetime
-import math
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="Tax Invoice Generator", layout="wide")
+st.set_page_config(page_title="Invoice Generator", layout="wide")
 
 # --- INDIAN NUMBER SYSTEM LOGIC ---
 def number_to_words(num):
@@ -42,55 +41,52 @@ def number_to_words(num):
         words += " and " + convert(num_dec) + " Paise"
     return words + " Only"
 
-# --- UI INPUTS ---
-st.sidebar.header("Bill Details")
-p_name = st.sidebar.text_input("Your Company Name", "Digital Marketing Mechanics")
-p_addr = st.sidebar.text_area("Your Address", "Eluru, Andhra Pradesh")
-c_name = st.sidebar.text_input("Client Name", "VASAVI SILKS")
-c_addr = st.sidebar.text_area("Client Address", "Mumbai, Maharashtra")
-inv_no = st.sidebar.text_input("Invoice #", "INV-001")
+# --- SIDEBAR INPUTS ---
+st.sidebar.header("Invoice Settings")
+p_name = st.sidebar.text_input("Company Name", "DIGITAL MARKETING MECHANICS")
+p_addr = st.sidebar.text_input("Location", "Eluru, Andhra Pradesh")
+c_name = st.sidebar.text_input("Billed To", "VASAVI SILKS")
+c_addr = st.sidebar.text_input("Client City", "Mumbai, Maharashtra")
+inv_no = st.sidebar.text_input("Invoice No", "INV-001")
 inv_date = st.sidebar.date_input("Date", datetime.now())
-desc = st.sidebar.text_area("Description", "Social Media Management Services")
-amt = st.sidebar.number_input("Amount (INR)", min_value=0.0, value=15000.0)
+desc = st.sidebar.text_input("Description", "Social Media Management Services")
+amt = st.sidebar.number_input("Amount", value=15000.0)
 
-# --- PROCEDURAL STYLING ENGINE ---
-# Seed based on company name for brand consistency
+# --- DYNAMIC STYLING ---
 style_seed = sum(ord(c) for c in p_name)
 hue = (style_seed * 137.5) % 360
 primary_color = f"hsl({hue}, 60%, 35%)"
-fonts = ["Poppins", "Montserrat", "Raleway", "Playfair Display"]
-selected_font = fonts[style_seed % len(fonts)]
 
-# --- INVOICE HTML TEMPLATE ---
-invoice_html = f"""
-<link href="https://fonts.googleapis.com/css2?family={selected_font.replace(' ', '+')}:wght@400;700&display=swap" rel="stylesheet">
+# --- RENDER INVOICE ---
+# We use a triple-quoted string and .format() to avoid f-string curly brace conflicts with CSS
+invoice_template = """
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 <style>
     .invoice-box {{
-        font-family: '{selected_font}', sans-serif;
+        font-family: 'Poppins', sans-serif;
         max-width: 800px;
         margin: auto;
-        padding: 40px;
+        padding: 30px;
         border: 1px solid #eee;
-        background: white;
-        color: #333;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+        background-color: white;
     }}
-    .header {{ border-bottom: 3px solid {primary_color}; padding-bottom: 20px; text-align: center; margin-bottom: 30px; }}
-    .header h1 {{ color: {primary_color}; text-transform: uppercase; margin: 0; }}
-    .meta {{ display: flex; justify-content: space-between; margin-bottom: 40px; }}
-    .table-container {{ width: 100%; border-collapse: collapse; margin-bottom: 30px; }}
-    .table-container th {{ background: {primary_color}; color: white; padding: 12px; text-align: left; }}
-    .table-container td {{ padding: 12px; border-bottom: 1px solid #eee; }}
-    .total-section {{ text-align: right; margin-top: 30px; }}
-    .total-amount {{ font-size: 24px; font-weight: bold; color: {primary_color}; }}
-    .words-box {{ background: #f9f9f9; padding: 10px; border-left: 4px solid {primary_color}; font-size: 13px; font-style: italic; }}
+    .header {{ text-align: center; border-bottom: 3px solid {color}; padding-bottom: 10px; margin-bottom: 20px; }}
+    .header h1 {{ color: {color}; margin-bottom: 5px; text-transform: uppercase; }}
+    .meta {{ display: flex; justify-content: space-between; margin-top: 20px; margin-bottom: 30px; font-size: 14px; }}
+    .table-container {{ width: 100%; border-collapse: collapse; }}
+    .table-container th {{ background: {color}; color: white; padding: 10px; text-align: left; }}
+    .table-container td {{ padding: 10px; border-bottom: 1px solid #eee; }}
+    .total-area {{ text-align: right; margin-top: 20px; }}
+    .grand-total {{ font-size: 20px; font-weight: bold; color: {color}; }}
+    .words {{ font-style: italic; color: #666; font-size: 12px; margin-top: 10px; }}
 </style>
 
 <div class="invoice-box">
     <div class="header">
         <h1>{p_name}</h1>
-        <p>{p_addr}</p>
+        <div>{p_addr}</div>
     </div>
-    
     <div class="meta">
         <div>
             <strong>Billed To:</strong><br>
@@ -98,10 +94,9 @@ invoice_html = f"""
         </div>
         <div style="text-align: right;">
             <strong>Invoice #:</strong> {inv_no}<br>
-            <strong>Date:</strong> {inv_date.strftime('%d %b, %Y')}
+            <strong>Date:</strong> {date}
         </div>
     </div>
-
     <table class="table-container">
         <thead>
             <tr><th>Description</th><th style="text-align: right;">Amount</th></tr>
@@ -110,19 +105,27 @@ invoice_html = f"""
             <tr><td>{desc}</td><td style="text-align: right;">₹ {amt:,.2f}</td></tr>
         </tbody>
     </table>
-
-    <div class="words-box">Rupees in words: {number_to_words(amt)}</div>
-    
-    <div class="total-section">
-        <span>Grand Total:</span><br>
-        <span class="total-amount">₹ {amt:,.2f}</span>
+    <div class="total-area">
+        <div class="words">Rupees in words: {words}</div>
+        <div style="margin-top:10px;">Grand Total:</div>
+        <div class="grand-total">₹ {amt:,.2f}</div>
     </div>
 </div>
 """
 
-st.markdown(invoice_html, unsafe_allow_html=True)
-
-# Add a Print Button
-st.sidebar.markdown("---")
-if st.sidebar.button("Prepare for Printing"):
-    st.info("Press Ctrl+P (Cmd+P on Mac) to save the invoice as a PDF.")
+# Injecting the data into the template
+st.markdown(
+    invoice_template.format(
+        color=primary_color,
+        p_name=p_name,
+        p_addr=p_addr,
+        c_name=c_name,
+        c_addr=c_addr,
+        inv_no=inv_no,
+        date=inv_date.strftime("%d %b, %Y"),
+        desc=desc,
+        amt=amt,
+        words=number_to_words(amt)
+    ),
+    unsafe_allow_html=True
+)
