@@ -4,7 +4,7 @@ from datetime import datetime
 import hashlib
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="Universal Invoice Studio", layout="wide")
+st.set_page_config(page_title="Professional Invoice Studio", layout="wide")
 
 # --- INDIAN NUMBER SYSTEM LOGIC ---
 def number_to_words(num):
@@ -55,7 +55,7 @@ p_name = st.sidebar.text_input("Your Company Name", "").upper()
 p_addr = st.sidebar.text_area("Your Address", "")
 
 st.sidebar.subheader("3. Client Details")
-# Fixed Default for Vasavi Silks
+# Defaulting to Vasavi Silks
 c_name = st.sidebar.text_input("Billed To", "VASAVI SILKS PRIVATE LIMITED")
 c_addr = st.sidebar.text_area("Client Address", "Edaravari Street\nEluru-534002\n9246663443\naccounts@vasavisilks.com")
 
@@ -148,7 +148,7 @@ html_template = f"""
         </div>
 
         <div class="footer-section">
-            <div style="font-size: 10px; color: #999;">##STAMP##</div>
+            <div style="font-size: 10px; color: #999;"></div>
             <div class="total-box">
                 <div class="label">Total Amount Payable</div>
                 <div class="grand-total">₹ ##AMT##</div>
@@ -169,14 +169,13 @@ html_template = f"""
 
 # Dynamic Replacement
 final_html = html_template.replace("##PNAME##", p_name if p_name else "COMPANY NAME") \
-                          .replace("##PADDR##", p_addr if p_addr else "Company Address Details") \
+                          .replace("##PADDR##", p_addr if p_addr else "Company Address") \
                           .replace("##CNAME##", c_name) \
                           .replace("##CADDR##", c_addr) \
                           .replace("##INVNO##", inv_no) \
                           .replace("##DATE##", inv_date.strftime("%d %b, %Y")) \
                           .replace("##DESC##", desc if desc else "Service Details") \
                           .replace("##AMT##", f"{amt:,.2f}") \
-                          .replace("##WORDS##", number_to_words(amt)) \
-                          .replace("##STAMP##", f"Verified {selected_size} Document")
+                          .replace("##WORDS##", number_to_words(amt))
 
 components.html(final_html, height=1200, scrolling=True)
