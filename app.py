@@ -4,7 +4,7 @@ from datetime import datetime
 import hashlib
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="Professional Invoice Generator", layout="wide")
+st.set_page_config(page_title="Professional Invoice Studio", layout="wide")
 
 # --- INDIAN NUMBER SYSTEM LOGIC ---
 def number_to_words(num):
@@ -37,17 +37,20 @@ def number_to_words(num):
     if num_dec > 0: words += " and " + convert(num_dec) + " Paise"
     return words + " Only"
 
-# --- SIDEBAR CONFIGURATION ---
-st.sidebar.header("Invoice Configuration")
+# --- SIDEBAR ---
+st.sidebar.header("1. Document Size")
+inv_size = st.sidebar.radio("Select Print Size", ["Standard A4", "Compact Receipt"])
+
+st.sidebar.header("2. Company Info")
 p_name = st.sidebar.text_input("Your Company Name", "").upper()
 p_addr = st.sidebar.text_area("Your Address", "")
 
-st.sidebar.subheader("Client Details")
-# DEFAULT BILLING ADDRESS
+st.sidebar.subheader("3. Client Details")
+# Defaulting to Vasavi Silks as requested
 c_name = st.sidebar.text_input("Billed To", "VASAVI SILKS PRIVATE LIMITED")
-c_addr = st.sidebar.text_area("Client Address", 
-    "Edaravari Street\nEluru-534002\n9246663443\naccounts@vasavisilks.com")
+c_addr = st.sidebar.text_area("Client Address", "Edaravari Street\nEluru-534002\n9246663443\naccounts@vasavisilks.com")
 
+st.sidebar.subheader("4. Invoice Data")
 inv_no = st.sidebar.text_input("Invoice #", "")
 inv_date = st.sidebar.date_input("Date", datetime.now())
 desc = st.sidebar.text_area("Service Description", "")
@@ -55,137 +58,132 @@ amt = st.sidebar.number_input("Amount (INR)", value=0.0)
 
 # --- PROCEDURAL DESIGN ENGINE ---
 seed_input = p_name if p_name else "DEFAULT"
-seed_raw = hashlib.md5(seed_input.encode()).hexdigest()
-s = int(seed_raw, 16)
+s = int(hashlib.md5(seed_input.encode()).hexdigest(), 16)
 
-# Generate unique design tokens
+# Design Tokens
 hue = s % 360 
-prime = f"hsl({hue}, 75%, 20%)"
-bg_light = f"hsl({hue}, 30%, 98%)"
-font_stack = ["'Poppins'", "'Montserrat'", "'Inter'", "'Raleway'"][s % 4]
-radius = (s % 20)
-align = ["left", "center", "right"][s % 3]
+prime = f"hsl({hue}, 70%, 25%)"
+bg_soft = f"hsl({hue}, 20%, 97%)"
+font = ["'Poppins'", "'Inter'", "'Montserrat'", "'Playfair Display'"][s % 4]
+layout_mode = s % 3 # 0: Modern, 1: Classic, 2: Minimalist
 
-# Generate unique footer text
-adjs = ["Official", "Certified", "Authorized", "Verified"]
-objs = ["Digital Document", "Electronic Invoice", "Service Record"]
-footer_txt = f"{adjs[s % 4]} {objs[(s//2) % 3]}"
+# Physical Dimensions
+width = "210mm" if inv_size == "Standard A4" else "120mm"
+min_height = "297mm" if inv_size == "Standard A4" else "180mm"
 
-# --- THE HTML TEMPLATE ---
+# Procedural Layout Logic
+header_style = "display: flex; justify-content: space-between;" if layout_mode == 0 else "text-align: center;"
+table_style = "border: 1px solid #eee;" if layout_mode == 1 else "border: none;"
+
+# --- HTML TEMPLATE ---
 html_template = f"""
 <!DOCTYPE html>
 <html>
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Montserrat:wght@400;700&family=Inter:wght@400;700&family=Raleway:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Inter:wght@400;700&family=Montserrat:wght@400;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * {{ box-sizing: border-box; -webkit-print-color-adjust: exact; }}
-        @page {{ size: A4; margin: 0mm; }}
-        html, body {{ margin: 0; padding: 0; width: 100%; background: #f0f2f5; }}
+        @page {{ size: {inv_size.split()[-1]}; margin: 0mm; }}
+        body {{ background: #f4f7f6; margin: 0; padding: 20px; font-family: {font}, sans-serif; }}
         
-        .page-container {{ 
-            width: 210mm; 
-            min-height: 297mm; 
-            padding: 20mm; 
-            margin: 20px auto; 
-            background: white; 
-            font-family: {font_stack}, sans-serif;
+        .invoice-box {{
+            width: {width};
+            min-height: {min_height};
+            padding: 15mm;
+            margin: auto;
+            background: white;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
             position: relative;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }}
 
-        .invoice-header {{ 
-            text-align: {align}; 
-            border-bottom: 2px solid {prime}; 
-            padding-bottom: 30px; 
-            margin-bottom: 40px; 
-        }}
-        .invoice-header h1 {{ color: {prime}; font-size: 32px; margin: 0; text-transform: uppercase; }}
+        .header-bar {{ {header_style} border-bottom: 4px solid {prime}; padding-bottom: 20px; margin-bottom: 30px; }}
+        .header-bar h1 {{ color: {prime}; margin: 0; text-transform: uppercase; font-size: 28px; }}
         
-        .info-section {{ display: flex; justify-content: space-between; margin-bottom: 40px; }}
-        .label {{ color: {prime}; font-weight: bold; font-size: 11px; text-transform: uppercase; margin-bottom: 5px; }}
+        .meta-grid {{ display: flex; justify-content: space-between; margin-bottom: 40px; font-size: 14px; }}
+        .label {{ color: {prime}; font-weight: bold; font-size: 10px; text-transform: uppercase; margin-bottom: 4px; }}
         
-        .item-table {{ width: 100%; border-collapse: collapse; margin: 30px 0; }}
-        .item-table th {{ background: {prime}; color: white; padding: 15px; text-align: left; }}
-        .item-table td {{ padding: 15px; border-bottom: 1px solid #eee; }}
+        .main-table {{ width: 100%; border-collapse: collapse; margin: 20px 0; {table_style} }}
+        .main-table th {{ background: {prime}; color: white; padding: 12px; text-align: left; }}
+        .main-table td {{ padding: 15px; border-bottom: 1px solid #eee; }}
         
-        .amt-words {{ background: {bg_light}; padding: 20px; border-left: 5px solid {prime}; margin: 25px 0; border-radius: 4px; font-style: italic; font-size: 14px; }}
+        .words-section {{ background: {bg_soft}; padding: 15px; border-radius: 4px; border-left: 4px solid {prime}; margin: 20px 0; font-style: italic; font-size: 13px; }}
         
-        .invoice-footer {{ margin-top: 100px; display: flex; justify-content: space-between; align-items: flex-end; }}
-        .sig-box {{ text-align: right; }}
-        .sig-line {{ border-top: 2px solid #000; width: 200px; margin-top: 60px; margin-left: auto; }}
-        
-        .doc-verify {{ font-size: 11px; color: #999; font-style: italic; }}
+        .footer-area {{ margin-top: 60px; display: flex; justify-content: space-between; align-items: flex-end; }}
+        .total-display {{ color: {prime}; font-size: 32px; font-weight: bold; }}
+        .signature-line {{ border-top: 2px solid #333; width: 180px; margin-top: 50px; margin-left: auto; }}
 
         @media print {{
-            body {{ background: none; }}
-            .page-container {{ margin: 0; box-shadow: none; width: 100%; height: 100%; border: none; }}
+            body {{ background: white; padding: 0; }}
+            .invoice-box {{ box-shadow: none; margin: 0; width: 100%; border: none; }}
             .no-print {{ display: none !important; }}
         }}
     </style>
 </head>
 <body>
-    <div class="page-container">
-        <div class="invoice-header">
-            <h1>{{p_name}}</h1>
-            <div style="color: #666; margin-top: 5px;">{{p_addr}}</div>
-        </div>
-
-        <div class="info-section">
+    <div class="invoice-box">
+        <div class="header-bar">
             <div>
-                <div class="label">Billed To</div>
-                <div style="font-size: 18px; font-weight: bold;">{{c_name}}</div>
-                <div style="white-space: pre-wrap; color: #444;">{{c_addr}}</div>
+                <h1>{{p_name}}</h1>
+                <div style="color: #666;">{{p_addr}}</div>
             </div>
             <div style="text-align: right;">
-                <div class="label">Invoice Summary</div>
-                <strong>No: {{inv_no}}</strong><br>
-                Date: {{inv_date}}
+                <div class="label">Invoice #</div>
+                <strong>{{inv_no}}</strong><br>
+                {{inv_date}}
             </div>
         </div>
 
-        <table class="item-table">
+        <div class="meta-grid">
+            <div>
+                <div class="label">Client Information</div>
+                <div style="font-size: 16px; font-weight: bold;">{{c_name}}</div>
+                <div style="white-space: pre-wrap;">{{c_addr}}</div>
+            </div>
+        </div>
+
+        <table class="main-table">
             <thead>
-                <tr><th>Description</th><th style="text-align: right;">Total Amount</th></tr>
+                <tr><th>Description of Service</th><th style="text-align: right;">Amount</th></tr>
             </thead>
             <tbody>
                 <tr><td>{{desc}}</td><td style="text-align: right; font-weight: bold;">₹ {{amt}}</td></tr>
             </tbody>
         </table>
 
-        <div class="amt-words">
+        <div class="words-section">
             <strong>Amount in words:</strong><br>{{words}}
         </div>
 
-        <div class="invoice-footer">
-            <div class="doc-verify">{footer_txt}.</div>
-            <div class="sig-box">
-                <div class="label">Total Due</div>
-                <div style="font-size: 32px; font-weight: bold; color: {prime};">₹ {{amt}}</div>
-                <div class="sig-line"></div>
+        <div class="footer-area">
+            <div style="font-size: 11px; color: #999;">System Generated Official Record.</div>
+            <div style="text-align: right;">
+                <div class="label">Total Amount Due</div>
+                <div class="total-display">₹ {{amt}}</div>
+                <div class="signature-line"></div>
                 <div style="font-weight: bold; margin-top: 5px;">Authorized Signatory</div>
                 <div style="font-size: 11px; color: #777;">For {{p_name}}</div>
             </div>
         </div>
     </div>
 
-    <div class="no-print" style="text-align: center; margin: 40px 0;">
-        <button onclick="window.print()" style="background: {prime}; color: white; padding: 15px 50px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
-            🖨️ Print Full Page Invoice
+    <div class="no-print" style="text-align: center; margin-top: 30px;">
+        <button onclick="window.print()" style="background: {prime}; color: white; padding: 14px 40px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">
+            🖨️ Print {inv_size} Invoice
         </button>
     </div>
 </body>
 </html>
 """
 
-# Dynamic rendering logic
-rendered_html = html_template.replace("{{p_name}}", p_name if p_name else "COMPANY NAME") \
-                             .replace("{{p_addr}}", p_addr if p_addr else "Company Address") \
-                             .replace("{{c_name}}", c_name if c_name else "Client Name") \
-                             .replace("{{c_addr}}", c_addr if c_addr else "Client Address") \
-                             .replace("{{inv_no}}", inv_no if inv_no else "---") \
-                             .replace("{{inv_date}}", inv_date.strftime("%d %b, %Y")) \
-                             .replace("{{desc}}", desc if desc else "Service Details") \
-                             .replace("{{amt}}", f"{amt:,.2f}") \
-                             .replace("{{words}}", number_to_words(amt))
+# Manual placeholder replacement for safety
+final_html = html_template.replace("{{p_name}}", p_name if p_name else "YOUR COMPANY") \
+                          .replace("{{p_addr}}", p_addr if p_addr else "Address Line") \
+                          .replace("{{c_name}}", c_name if c_name else "Client Name") \
+                          .replace("{{c_addr}}", c_addr if c_addr else "Client Details") \
+                          .replace("{{inv_no}}", inv_no if inv_no else "---") \
+                          .replace("{{inv_date}}", inv_date.strftime("%d %b, %Y")) \
+                          .replace("{{desc}}", desc if desc else "Service Description") \
+                          .replace("{{amt}}", f"{amt:,.2f}") \
+                          .replace("{{words}}", number_to_words(amt))
 
-components.html(rendered_html, height=1300, scrolling=True)
+components.html(final_html, height=1400, scrolling=True)
