@@ -43,7 +43,7 @@ p_name = st.sidebar.text_input("Your Company Name", "DIGITAL MARKETING MECHANICS
 p_addr = st.sidebar.text_area("Your Address", "Eluru, Andhra Pradesh")
 
 st.sidebar.subheader("Client Details")
-# Defaulting to Vasavi Silks details as requested
+# Defaulting to Vasavi Silks details
 c_name = st.sidebar.text_input("Billed To", "VASAVI SILKS PRIVATE LIMITED")
 c_addr = st.sidebar.text_area("Client Address", "Edaravari Street\nEluru-534002\n9246663443\naccounts@vasavisilks.com")
 
@@ -64,16 +64,10 @@ header_align = ["left", "center", "right"][s % 3]
 prime = f"hsl({hue}, 75%, 20%)"
 bg_tint = f"hsl({hue}, 30%, 98%)"
 
-# NEW: DYNAMIC FOOTER TEXT VARIATIONS
-footer_variants = [
-    "🛡️ Authorized Digital Document",
-    "✅ Verified Electronic Invoice",
-    "✨ System Generated Official Record",
-    "📜 Authenticated Billing Statement",
-    "💎 Premium Service Receipt",
-    "🔒 Secure Digital Transaction"
-]
-selected_footer = footer_variants[s % len(footer_variants)]
+# GENERATIVE FOOTER LOGIC: Builds a unique phrase based on the seed
+adjectives = ["Authorized", "Official", "Verified", "Authenticated", "Valid", "Certified"]
+nouns = ["Digital Record", "Electronic Invoice", "Billing Statement", "Service Receipt", "Document"]
+footer_phrase = f"{adjectives[s % len(adjectives)]} {nouns[(s//2) % len(nouns)]}"
 
 # --- THE GENERATIVE HTML ---
 html_template = f"""
@@ -88,7 +82,7 @@ html_template = f"""
             max-width: 850px; margin: auto; background: white; padding: 50px;
             border-top: 12px solid {prime};
             border-radius: {border_radius}px;
-            box-shadow: 0 15px 50px rgba(0,0,0,0.1);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.08);
         }}
         .header {{ text-align: {header_align}; margin-bottom: 50px; border-bottom: 1px solid #eee; padding-bottom: 25px; }}
         .header h1 {{ color: {prime}; font-size: 32px; text-transform: uppercase; margin: 0; letter-spacing: 1px; }}
@@ -97,17 +91,15 @@ html_template = f"""
         .table {{ width: 100%; border-collapse: collapse; margin: 30px 0; }}
         .table th {{ background: {prime}; color: white; padding: 15px; text-align: left; }}
         .table td {{ padding: 15px; border-bottom: 1px solid #eee; }}
-        .words-box {{ background: {bg_tint}; padding: 20 :px; border-left: 6px solid {prime}; border-radius: 4px; margin: 20px 0; font-style: italic; }}
+        .words-box {{ background: {bg_tint}; padding: 20px; border-left: 6px solid {prime}; border-radius: 4px; margin: 20px 0; font-style: italic; }}
         .footer {{ margin-top: 70px; display: flex; justify-content: space-between; align-items: flex-end; }}
         .sig-line {{ border-top: 2px solid #333; width: 220px; margin-top: 50px; }}
         
-        /* Styled Dynamic Footer Text */
-        .dynamic-footer-text {{ 
-            font-size: 12px; 
-            color: {prime}; 
-            opacity: 0.7; 
-            font-weight: 600;
-            letter-spacing: 0.5px;
+        .gen-footer-text {{ 
+            font-size: 11px; 
+            color: #aaa; 
+            text-transform: capitalize;
+            font-style: italic;
         }}
 
         @media print {{
@@ -141,7 +133,7 @@ html_template = f"""
         </table>
         <div class="words-box"><strong>Rupees in Words:</strong><br>{number_to_words(amt)}</div>
         <div class="footer">
-            <div class="dynamic-footer-text">{selected_footer}</div>
+            <div class="gen-footer-text">{footer_phrase}.</div>
             <div style="text-align: right;">
                 <div class="label">Grand Total</div>
                 <div style="font-size: 32px; font-weight: bold; color: {prime};">₹ {amt:,.2f}</div>
