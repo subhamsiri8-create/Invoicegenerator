@@ -37,8 +37,8 @@ def number_to_words(num):
     if num_dec > 0: words += " and " + convert(num_dec) + " Paise"
     return words + " Only"
 
-# --- SIDEBAR: CONFIGURATION ---
-st.sidebar.header("Invoice Configuration")
+# --- SIDEBAR ---
+st.sidebar.header("Configuration")
 size_options = {
     "A4 (Standard)": {"w": "210mm", "h": "297mm", "pg": "A4"},
     "Letter": {"w": "216mm", "h": "279mm", "pg": "letter"},
@@ -50,11 +50,11 @@ size_options = {
 selected_size = st.sidebar.selectbox("Paper Size", list(size_options.keys()))
 dims = size_options[selected_size]
 
-p_name = st.sidebar.text_input("Your Company Name", "DIGITAL MARKETING MECHANICS").upper()
-p_addr = st.sidebar.text_area("Your Address", "Eluru, Andhra Pradesh")
+p_name = st.sidebar.text_input("Your Company Name", "DIGITAL MARKETING MECHANICS").upper() #
+p_addr = st.sidebar.text_area("Your Address", "Eluru, Andhra Pradesh") #
 
 st.sidebar.markdown("---")
-# Preset for Vasavi Silks
+# Presetting Billed To details
 c_name = st.sidebar.text_input("Billed To", "VASAVI SILKS PRIVATE LIMITED")
 c_addr = st.sidebar.text_area("Client Address", "Edaravari Street\nEluru-534002\n9246663443\naccounts@vasavisilks.com")
 
@@ -68,14 +68,14 @@ seed_val = p_name if p_name else "BASE"
 s = int(hashlib.md5(seed_val.encode()).hexdigest(), 16)
 hues = [210, 160, 25, 340, 280, 200, 10]
 primary = f"hsl({hues[s % len(hues)]}, 70%, 25%)"
-font_f = ["'Poppins'", "'Inter'", "'Montserrat'", "'Playfair Display'"][s % 4]
+font_f = ["'Poppins'", "'Inter'", "'Montserrat'"][s % 3]
 
-# --- COMPACT HTML TEMPLATE ---
+# --- HTML TEMPLATE ---
 html_template = f"""
 <!DOCTYPE html>
 <html>
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Inter:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * {{ box-sizing: border-box; -webkit-print-color-adjust: exact; }}
         @page {{ size: {dims['pg']}; margin: 0; }}
@@ -83,29 +83,29 @@ html_template = f"""
         
         .invoice-card {{
             background: white; width: {dims['w']}; min-height: {dims['h']};
-            margin: auto; padding: 8mm; position: relative;
+            margin: auto; padding: 10mm; position: relative;
             display: flex; flex-direction: column;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }}
 
         .header {{ 
             display: flex; justify-content: space-between; 
-            margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1.5px solid #eee; 
+            margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #eee; 
         }}
         .co-title {{ color: {primary}; font-size: 22px; font-weight: bold; margin: 0; line-height: 1; }}
-        .label {{ color: {primary}; font-size: 9px; font-weight: bold; text-transform: uppercase; margin-bottom: 2px; }}
+        .label {{ color: {primary}; font-size: 9px; font-weight: bold; text-transform: uppercase; margin-bottom: 1px; }}
         
-        .info-section {{ display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 12px; }}
+        .info-grid {{ display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px; }}
         
-        .table {{ width: 100%; border-collapse: collapse; flex-grow: 1; margin-top: 5px; }}
-        .table th {{ background: #f9f9f9; color: {primary}; text-align: left; padding: 6px 10px; border-bottom: 2px solid {primary}; font-size: 11px; }}
-        .table td {{ padding: 8px 10px; border-bottom: 1px solid #eee; font-size: 13px; }}
+        /* TIGHT TABLE LOGIC */
+        .table {{ width: 100%; border-collapse: collapse; margin-top: 0; }}
+        .table th {{ background: #f8f9fa; color: {primary}; text-align: left; padding: 4px 10px; border-bottom: 2.5px solid {primary}; font-size: 11px; }}
+        .table td {{ padding: 6px 10px; border-bottom: 1px solid #eee; font-size: 14px; vertical-align: top; }}
         
-        .amt-words {{ background: #fcfcfc; padding: 8px 12px; border-left: 3px solid {primary}; font-style: italic; font-size: 11px; margin: 15px 0; }}
+        .amt-words {{ background: #fafafa; padding: 8px; border-left: 3px solid {primary}; font-style: italic; font-size: 11px; margin: 8px 0; }}
         
-        .footer-section {{ margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; padding-top: 10px; }}
-        .grand-total {{ font-size: 24px; font-weight: bold; color: {primary}; margin: 2px 0; }}
-        .sig-line {{ border-top: 1.5px solid #000; width: 160px; margin-top: 35px; margin-left: auto; }}
+        .footer {{ margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; padding-top: 5px; }}
+        .grand-total {{ font-size: 26px; font-weight: bold; color: {primary}; margin: 0; }}
+        .sig-line {{ border-top: 1.5px solid #000; width: 170px; margin-top: 30px; margin-left: auto; }}
 
         @media print {{
             header, footer, .stAppHeader, .stDecoration, .stToolbar {{ display: none !important; }}
@@ -123,17 +123,17 @@ html_template = f"""
                 <div style="color: #666; font-size: 11px;">##PADDR##</div>
             </div>
             <div style="text-align: right;">
-                <div class="label">Invoice Summary</div>
+                <div class="label">Invoice</div>
                 <strong style="font-size: 14px;"># ##INVNO##</strong><br>
                 <span style="font-size: 11px;">##DATE##</span>
             </div>
         </div>
 
-        <div class="info-section">
+        <div class="info-grid">
             <div>
                 <div class="label">Billed To</div>
                 <div style="font-size: 15px; font-weight: bold;">##CNAME##</div>
-                <div style="white-space: pre-wrap; color: #444; line-height: 1.3;">##CADDR##</div>
+                <div style="white-space: pre-wrap; color: #444; line-height: 1.2;">##CADDR##</div>
             </div>
         </div>
 
@@ -146,19 +146,19 @@ html_template = f"""
             <strong>In Words:</strong> ##WORDS##
         </div>
 
-        <div class="footer-section">
+        <div class="footer">
             <div></div>
             <div style="text-align: right;">
-                <div class="label">Total Amount Payable</div>
+                <div class="label">Amount Payable</div>
                 <div class="grand-total">₹ ##AMT##</div>
                 <div class="sig-line"></div>
-                <div style="font-weight: bold; font-size: 11px; margin-top: 4px;">Authorized Signatory</div>
+                <div style="font-weight: bold; font-size: 11px; margin-top: 3px;">Authorized Signatory</div>
             </div>
         </div>
     </div>
     <div class="no-print" style="text-align: center; margin-top: 20px;">
         <button onclick="window.print()" style="background: {primary}; color: white; padding: 10px 30px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
-            PRINT COMPACT INVOICE
+            PRINT CLEAN INVOICE
         </button>
     </div>
 </body>
