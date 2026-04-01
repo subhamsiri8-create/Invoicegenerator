@@ -4,7 +4,7 @@ from datetime import datetime
 import hashlib
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="Multi-Font Invoice Studio", layout="wide")
+st.set_page_config(page_title="Clean Professional Invoice", layout="wide")
 
 # --- INDIAN NUMBER SYSTEM LOGIC ---
 def number_to_words(num):
@@ -37,18 +37,18 @@ def number_to_words(num):
     if num_dec > 0: words += " and " + convert(num_dec) + " Paise"
     return words + " Only"
 
-# --- SIDEBAR: DESIGN CONTROL ---
+# --- SIDEBAR ---
 st.sidebar.header("🎨 Style Selector")
 style_id = st.sidebar.number_input("Enter Template ID (1-1000)", min_value=1, max_value=1000, value=1)
 
 st.sidebar.markdown("---")
 st.sidebar.header("📝 Business Details")
-p_name = st.sidebar.text_input("Company Name", "DIGITAL MARKETING MECHANICS").upper() #
-p_addr = st.sidebar.text_area("Address", "Eluru, Andhra Pradesh") #
+p_name = st.sidebar.text_input("Company Name", "DIGITAL MARKETING MECHANICS").upper()
+p_addr = st.sidebar.text_area("Address", "Eluru, Andhra Pradesh")
 
 st.sidebar.header("👤 Client Details")
-c_name = st.sidebar.text_input("Billed To", "VASAVI SILKS PRIVATE LIMITED") #
-c_addr = st.sidebar.text_area("Client Address", "Edaravari Street\nEluru-534002\n9246663443\naccounts@vasavisilks.com") #
+c_name = st.sidebar.text_input("Billed To", "VASAVI SILKS PRIVATE LIMITED")
+c_addr = st.sidebar.text_area("Client Address", "Edaravari Street\nEluru-534002\n9246663443\naccounts@vasavisilks.com")
 
 st.sidebar.header("📊 Invoice Data")
 inv_no = st.sidebar.text_input("Invoice #", "INV-2026-001")
@@ -56,36 +56,27 @@ inv_date = st.sidebar.date_input("Date", datetime.now())
 desc = st.sidebar.text_area("Description", "Service Details")
 amt = st.sidebar.number_input("Amount (INR)", value=0.0)
 
-# --- ADVANCED PROCEDURAL ENGINE ---
+# --- PROCEDURAL ENGINE ---
 s = style_id
 hues = [210, 160, 25, 340, 280, 200, 10, 120, 45, 190]
 primary = f"hsl({hues[s % len(hues)]}, 75%, {25 + (s % 20)}%)"
 bg_light = f"hsl({hues[s % len(hues)]}, 15%, 98%)"
 
-# Extended Font Library
 font_options = [
-    "'Poppins', sans-serif", 
-    "'Playfair Display', serif", 
-    "'Inter', sans-serif", 
-    "'Montserrat', sans-serif", 
-    "'JetBrains Mono', monospace",
-    "'Libre Baskerville', serif",
-    "'Roboto Condensed', sans-serif"
+    "'Poppins', sans-serif", "'Playfair Display', serif", "'Inter', sans-serif", 
+    "'Montserrat', sans-serif", "'JetBrains Mono', monospace", "'Roboto Condensed', sans-serif"
 ]
 selected_font = font_options[s % len(font_options)]
 
-# Layout Variations
 aligns = ["space-between", "center", "flex-start"]
 h_align = aligns[s % 3]
-table_styles = ["none", f"1px solid {primary}", "1px solid #eee"]
-t_border = table_styles[s % 3]
 
-# --- DYNAMIC HTML ---
+# --- HTML TEMPLATE ---
 html_template = f"""
 <!DOCTYPE html>
 <html>
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Inter:wght@400;700&family=Montserrat:wght@400;700&family=Playfair+Display:wght@400;700&family=JetBrains+Mono&family=Libre+Baskerville:ital@0;1&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Inter:wght@400;700&family=Montserrat:wght@400;700&family=Playfair+Display:wght@400;700&family=JetBrains+Mono&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * {{ box-sizing: border-box; -webkit-print-color-adjust: exact; }}
         @page {{ size: A4; margin: 0; }}
@@ -104,10 +95,10 @@ html_template = f"""
             {f"text-align: center; flex-direction: column;" if h_align == 'center' else ""}
         }}
         
-        .co-title {{ color: {primary}; font-size: 32px; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: -0.5px; }}
+        .co-title {{ color: {primary}; font-size: 32px; font-weight: bold; text-transform: uppercase; margin: 0; }}
         .label {{ color: {primary}; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 2px; }}
         
-        .table {{ width: 100%; border-collapse: collapse; border: {t_border}; }}
+        .table {{ width: 100%; border-collapse: collapse; }}
         .table th {{ background: {bg_light}; color: {primary}; text-align: left; padding: 12px; border-bottom: 2px solid {primary}; font-size: 11px; }}
         .table td {{ padding: 15px 12px; border-bottom: 1px solid #eee; font-size: 15px; }}
         
@@ -134,9 +125,8 @@ html_template = f"""
                 <div style="color: #555; font-size: 12px; margin-top: 4px;">##PADDR##</div>
             </div>
             <div style="text-align: right; { 'margin-top: 20px;' if h_align == 'center' else '' }">
-                <div class="label">Invoice Reference</div>
-                <strong style="font-size: 16px;"># ##INVNO##</strong><br>
-                <span style="font-size: 12px;">##DATE##</span>
+                <strong style="font-size: 18px; color: {primary};"># ##INVNO##</strong><br>
+                <span style="font-size: 13px; font-weight: bold; color: #444;">##DATE##</span>
             </div>
         </div>
 
@@ -166,14 +156,14 @@ html_template = f"""
     </div>
     <div class="no-print" style="text-align: center; margin-top: 30px;">
         <button onclick="window.print()" style="background: {primary}; color: white; padding: 15px 60px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; letter-spacing: 1px;">
-            PRINT TEMPLATE #{s}
+            PRINT CLEAN INVOICE
         </button>
     </div>
 </body>
 </html>
 """
 
-# Dynamic Replacement
+# Replacement
 final_html = html_template.replace("##PNAME##", p_name) \
                           .replace("##PADDR##", p_addr) \
                           .replace("##CNAME##", c_name) \
