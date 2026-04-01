@@ -50,8 +50,9 @@ size_options = {
 selected_size = st.sidebar.selectbox("Paper Size", list(size_options.keys()))
 dims = size_options[selected_size]
 
-p_name = st.sidebar.text_input("Your Company Name", "DIGITAL MARKETING MECHANICS").upper() #
-p_addr = st.sidebar.text_area("Your Address", "Eluru, Andhra Pradesh") #
+# Defaulting to your company details
+p_name = st.sidebar.text_input("Your Company Name", "DIGITAL MARKETING MECHANICS").upper()
+p_addr = st.sidebar.text_area("Your Address", "Eluru, Andhra Pradesh")
 
 st.sidebar.markdown("---")
 # Presetting Billed To details
@@ -96,16 +97,17 @@ html_template = f"""
         
         .info-grid {{ display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px; }}
         
-        /* TIGHT TABLE LOGIC */
         .table {{ width: 100%; border-collapse: collapse; margin-top: 0; }}
         .table th {{ background: #f8f9fa; color: {primary}; text-align: left; padding: 4px 10px; border-bottom: 2.5px solid {primary}; font-size: 11px; }}
         .table td {{ padding: 6px 10px; border-bottom: 1px solid #eee; font-size: 14px; vertical-align: top; }}
         
         .amt-words {{ background: #fafafa; padding: 8px; border-left: 3px solid {primary}; font-style: italic; font-size: 11px; margin: 8px 0; }}
         
-        .footer {{ margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; padding-top: 5px; }}
+        /* ALIGNED FOOTER LOGIC */
+        .footer {{ margin-top: auto; display: flex; justify-content: flex-end; padding-top: 5px; }}
+        .total-container {{ text-align: right; width: 220px; }}
         .grand-total {{ font-size: 26px; font-weight: bold; color: {primary}; margin: 0; }}
-        .sig-line {{ border-top: 1.5px solid #000; width: 170px; margin-top: 30px; margin-left: auto; }}
+        .sig-line {{ border-top: 1.5px solid #000; width: 100%; margin-top: 30px; }}
 
         @media print {{
             header, footer, .stAppHeader, .stDecoration, .stToolbar {{ display: none !important; }}
@@ -147,8 +149,7 @@ html_template = f"""
         </div>
 
         <div class="footer">
-            <div></div>
-            <div style="text-align: right;">
+            <div class="total-container">
                 <div class="label">Amount Payable</div>
                 <div class="grand-total">₹ ##AMT##</div>
                 <div class="sig-line"></div>
