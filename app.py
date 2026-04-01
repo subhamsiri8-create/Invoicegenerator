@@ -4,7 +4,7 @@ from datetime import datetime
 import hashlib
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="Multi-Font Invoice Studio", layout="wide")
+st.set_page_config(page_title="Pro Invoice Studio", layout="wide")
 
 # --- INDIAN NUMBER SYSTEM LOGIC ---
 def number_to_words(num):
@@ -37,143 +37,149 @@ def number_to_words(num):
     if num_dec > 0: words += " and " + convert(num_dec) + " Paise"
     return words + " Only"
 
-# --- SIDEBAR: DESIGN CONTROL ---
-st.sidebar.header("🎨 Style Selector")
-style_id = st.sidebar.number_input("Enter Template ID (1-1000)", min_value=1, max_value=1000, value=1)
+# --- SIDEBAR ---
+st.sidebar.header("🎨 Professional Presets")
+template_id = st.sidebar.slider("Select Design Variant", 1, 1000, 101)
 
 st.sidebar.markdown("---")
-st.sidebar.header("📝 Business Details")
 p_name = st.sidebar.text_input("Company Name", "DIGITAL MARKETING MECHANICS").upper() #
 p_addr = st.sidebar.text_area("Address", "Eluru, Andhra Pradesh") #
 
-st.sidebar.header("👤 Client Details")
+st.sidebar.header("👤 Client")
 c_name = st.sidebar.text_input("Billed To", "VASAVI SILKS PRIVATE LIMITED") #
 c_addr = st.sidebar.text_area("Client Address", "Edaravari Street\nEluru-534002\n9246663443\naccounts@vasavisilks.com") #
 
-st.sidebar.header("📊 Invoice Data")
-inv_no = st.sidebar.text_input("Invoice #", "INV-2026-001")
+st.sidebar.header("📊 Data")
+inv_no = st.sidebar.text_input("Invoice #", "INV-2026-88")
 inv_date = st.sidebar.date_input("Date", datetime.now())
-desc = st.sidebar.text_area("Description", "Service Details")
-amt = st.sidebar.number_input("Amount (INR)", value=0.0)
+desc = st.sidebar.text_area("Description", "Digital Marketing Services")
+amt = st.sidebar.number_input("Total Amount (INR)", value=15000.0)
 
-# --- ADVANCED PROCEDURAL ENGINE ---
-s = style_id
-hues = [210, 160, 25, 340, 280, 200, 10, 120, 45, 190]
-primary = f"hsl({hues[s % len(hues)]}, 75%, {25 + (s % 20)}%)"
-bg_light = f"hsl({hues[s % len(hues)]}, 15%, 98%)"
+# --- REALISM ENGINE ---
+s = template_id
+hues = [215, 140, 30, 0, 260, 200]
+primary = f"hsl({hues[s % len(hues)]}, 85%, 20%)"
+accent = f"hsl({hues[s % len(hues)]}, 85%, 96%)"
 
-# Extended Font Library
-font_options = [
-    "'Poppins', sans-serif", 
-    "'Playfair Display', serif", 
-    "'Inter', sans-serif", 
-    "'Montserrat', sans-serif", 
-    "'JetBrains Mono', monospace",
-    "'Libre Baskerville', serif",
-    "'Roboto Condensed', sans-serif"
+# Professional Font Pairings (Heading | Body)
+font_pairs = [
+    ("'Inter'", "'Inter'"), 
+    ("'Playfair Display'", "'Montserrat'"),
+    ("'Roboto'", "'Open Sans'"),
+    ("'Montserrat'", "'Lato'")
 ]
-selected_font = font_options[s % len(font_options)]
+h_font, b_font = font_pairs[s % len(font_pairs)]
 
-# Layout Variations
-aligns = ["space-between", "center", "flex-start"]
-h_align = aligns[s % 3]
-table_styles = ["none", f"1px solid {primary}", "1px solid #eee"]
-t_border = table_styles[s % 3]
-
-# --- DYNAMIC HTML ---
+# --- HTML TEMPLATE ---
 html_template = f"""
 <!DOCTYPE html>
 <html>
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Inter:wght@400;700&family=Montserrat:wght@400;700&family=Playfair+Display:wght@400;700&family=JetBrains+Mono&family=Libre+Baskerville:ital@0;1&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:wght@700&family=Montserrat:wght@400;700&family=Roboto:wght@400;700&family=Open+Sans&family=Lato&display=swap" rel="stylesheet">
     <style>
         * {{ box-sizing: border-box; -webkit-print-color-adjust: exact; }}
-        @page {{ size: A4; margin: 0; }}
-        body {{ background: #f0f2f5; margin: 0; padding: 15px; font-family: {selected_font}; }}
+        body {{ background: #eef0f3; margin: 0; padding: 20px; font-family: {b_font}, sans-serif; color: #333; }}
         
         .invoice-card {{
-            background: white; width: 210mm; min-height: 285mm;
-            margin: auto; padding: 10mm; display: flex; flex-direction: column;
-            border-top: 6px solid {primary};
+            background: white; width: 210mm; min-height: 297mm;
+            margin: auto; padding: 15mm; position: relative;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
         }}
 
-        .header {{ 
-            display: flex; justify-content: {h_align}; 
-            align-items: center; margin-bottom: 25px; padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-            {f"text-align: center; flex-direction: column;" if h_align == 'center' else ""}
+        /* Subtle Background Watermark for Realism */
+        .invoice-card::after {{
+            content: "ORIGINAL INVOICE"; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 80px; font-weight: bold; color: rgba(0,0,0,0.02);
+            pointer-events: none; z-index: 0;
         }}
+
+        .top-header {{ display: flex; justify-content: space-between; border-bottom: 2px solid {primary}; padding-bottom: 15px; margin-bottom: 20px; }}
+        .co-info h1 {{ font-family: {h_font}; color: {primary}; margin: 0; font-size: 26px; text-transform: uppercase; }}
         
-        .co-title {{ color: {primary}; font-size: 32px; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: -0.5px; }}
-        .label {{ color: {primary}; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 2px; }}
+        .status-badge {{
+            background: {accent}; color: {primary}; padding: 5px 15px;
+            border-radius: 4px; font-weight: bold; font-size: 12px; border: 1px solid {primary};
+        }}
+
+        .info-grid {{ display: flex; justify-content: space-between; margin-bottom: 30px; }}
+        .label {{ font-size: 10px; font-weight: bold; color: #888; text-transform: uppercase; margin-bottom: 5px; }}
+
+        .main-table {{ width: 100%; border-collapse: collapse; margin-top: 10px; z-index: 1; position: relative; }}
+        .main-table th {{ background: {primary}; color: white; text-align: left; padding: 12px; font-size: 12px; text-transform: uppercase; }}
+        .main-table td {{ padding: 15px 12px; border-bottom: 1px solid #eee; font-size: 14px; }}
         
-        .table {{ width: 100%; border-collapse: collapse; border: {t_border}; }}
-        .table th {{ background: {bg_light}; color: {primary}; text-align: left; padding: 12px; border-bottom: 2px solid {primary}; font-size: 11px; }}
-        .table td {{ padding: 15px 12px; border-bottom: 1px solid #eee; font-size: 15px; }}
+        .words-section {{ margin-top: 20px; font-size: 12px; color: #555; font-style: italic; border-left: 3px solid {primary}; padding-left: 10px; }}
+
+        /* TIGHT BOTTOM ALIGNMENT */
+        .summary-block {{ display: flex; justify-content: flex-end; margin-top: 15px; }}
+        .total-box {{ width: 240px; text-align: right; }}
+        .total-row {{ display: flex; justify-content: space-between; padding: 5px 0; border-top: 1px solid #eee; }}
+        .grand-total {{ font-size: 28px; font-weight: bold; color: {primary}; margin: 5px 0; }}
         
-        .amt-words {{ background: {bg_light}; padding: 12px; border-left: 4px solid {primary}; font-style: italic; font-size: 12px; margin: 20px 0; }}
-        
-        .footer-aligned {{ display: flex; justify-content: flex-end; margin-top: 10px; }}
-        .total-container {{ text-align: right; width: 240px; }}
-        .grand-total {{ font-size: 34px; font-weight: bold; color: {primary}; margin: 0; }}
-        .sig-line {{ border-top: 2px solid #000; width: 100%; margin-top: 40px; }}
+        .signature-area {{ margin-top: 30px; border-top: 1.5px solid #000; padding-top: 5px; }}
 
         @media print {{
-            header, footer, .stAppHeader, .stToolbar {{ display: none !important; }}
+            header, .stAppHeader, .stToolbar, .no-print {{ display: none !important; }}
             body {{ background: none; padding: 0; }}
             .invoice-card {{ box-shadow: none; margin: 0; width: 100%; border: none; }}
-            .no-print {{ display: none !important; }}
         }}
     </style>
 </head>
 <body>
     <div class="invoice-card">
-        <div class="header">
+        <div class="top-header">
+            <div class="co-info">
+                <h1>##PNAME##</h1>
+                <div style="font-size: 12px; color: #666;">##PADDR##</div>
+            </div>
+            <div style="text-align: right;">
+                <div class="status-badge">TAX INVOICE</div>
+                <div style="margin-top: 10px; font-size: 13px;">
+                    <strong>Invoice:</strong> ##INVNO##<br>
+                    <strong>Date:</strong> ##DATE##
+                </div>
+            </div>
+        </div>
+
+        <div class="info-grid">
             <div>
-                <div class="co-title">##PNAME##</div>
-                <div style="color: #555; font-size: 12px; margin-top: 4px;">##PADDR##</div>
-            </div>
-            <div style="text-align: right; { 'margin-top: 20px;' if h_align == 'center' else '' }">
-                <div class="label">Invoice Reference</div>
-                <strong style="font-size: 16px;"># ##INVNO##</strong><br>
-                <span style="font-size: 12px;">##DATE##</span>
+                <div class="label">Bill To</div>
+                <div style="font-size: 16px; font-weight: bold;">##CNAME##</div>
+                <div style="white-space: pre-wrap; font-size: 13px; color: #444; line-height: 1.4;">##CADDR##</div>
             </div>
         </div>
 
-        <div style="margin-bottom: 25px;">
-            <div class="label">Billed To</div>
-            <div style="font-size: 20px; font-weight: bold; margin-top: 4px;">##CNAME##</div>
-            <div style="white-space: pre-wrap; color: #444; line-height: 1.4; font-size: 14px;">##CADDR##</div>
-        </div>
-
-        <table class="table">
-            <thead><tr><th>Description</th><th style="text-align: right;">Total Amount</th></tr></thead>
+        <table class="main-table">
+            <thead><tr><th>Description of Services</th><th style="text-align: right;">Amount (INR)</th></tr></thead>
             <tbody><tr><td>##DESC##</td><td style="text-align: right; font-weight: bold;">₹ ##AMT##</td></tr></tbody>
         </table>
 
-        <div class="amt-words">
+        <div class="words-section">
             <strong>Amount in Words:</strong> ##WORDS##
         </div>
 
-        <div class="footer-aligned">
-            <div class="total-container">
-                <div class="label">Amount Payable</div>
+        <div class="summary-block">
+            <div class="total-box">
+                <div class="total-row"><span>Sub-Total:</span><span>₹ ##AMT##</span></div>
                 <div class="grand-total">₹ ##AMT##</div>
-                <div class="sig-line"></div>
-                <div style="font-weight: bold; font-size: 12px; margin-top: 6px;">Authorized Signatory</div>
+                <div class="signature-area">
+                    <div style="font-size: 11px; font-weight: bold;">Authorized Signatory</div>
+                </div>
             </div>
         </div>
     </div>
+    
     <div class="no-print" style="text-align: center; margin-top: 30px;">
-        <button onclick="window.print()" style="background: {primary}; color: white; padding: 15px 60px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; letter-spacing: 1px;">
-            PRINT TEMPLATE #{s}
+        <button onclick="window.print()" style="background: {primary}; color: white; padding: 12px 40px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; transition: 0.3s;">
+            GENERATE PROFESSIONAL PDF
         </button>
     </div>
 </body>
 </html>
 """
 
-# Dynamic Replacement
+# Rendering Logic
 final_html = html_template.replace("##PNAME##", p_name) \
                           .replace("##PADDR##", p_addr) \
                           .replace("##CNAME##", c_name) \
