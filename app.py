@@ -50,12 +50,11 @@ size_options = {
 selected_size = st.sidebar.selectbox("Paper Size", list(size_options.keys()))
 dims = size_options[selected_size]
 
-# Defaulting to your company details
+# Static presets for efficiency
 p_name = st.sidebar.text_input("Your Company Name", "DIGITAL MARKETING MECHANICS").upper()
 p_addr = st.sidebar.text_area("Your Address", "Eluru, Andhra Pradesh")
 
 st.sidebar.markdown("---")
-# Presetting Billed To details
 c_name = st.sidebar.text_input("Billed To", "VASAVI SILKS PRIVATE LIMITED")
 c_addr = st.sidebar.text_area("Client Address", "Edaravari Street\nEluru-534002\n9246663443\naccounts@vasavisilks.com")
 
@@ -69,18 +68,17 @@ seed_val = p_name if p_name else "BASE"
 s = int(hashlib.md5(seed_val.encode()).hexdigest(), 16)
 hues = [210, 160, 25, 340, 280, 200, 10]
 primary = f"hsl({hues[s % len(hues)]}, 70%, 25%)"
-font_f = ["'Poppins'", "'Inter'", "'Montserrat'"][s % 3]
 
 # --- HTML TEMPLATE ---
 html_template = f"""
 <!DOCTYPE html>
 <html>
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * {{ box-sizing: border-box; -webkit-print-color-adjust: exact; }}
         @page {{ size: {dims['pg']}; margin: 0; }}
-        body {{ background: #f0f2f5; margin: 0; padding: 10px; font-family: {font_f}, sans-serif; }}
+        body {{ background: #f0f2f5; margin: 0; padding: 10px; font-family: 'Poppins', sans-serif; }}
         
         .invoice-card {{
             background: white; width: {dims['w']}; min-height: {dims['h']};
@@ -101,13 +99,13 @@ html_template = f"""
         .table th {{ background: #f8f9fa; color: {primary}; text-align: left; padding: 4px 10px; border-bottom: 2.5px solid {primary}; font-size: 11px; }}
         .table td {{ padding: 6px 10px; border-bottom: 1px solid #eee; font-size: 14px; vertical-align: top; }}
         
-        .amt-words {{ background: #fafafa; padding: 8px; border-left: 3px solid {primary}; font-style: italic; font-size: 11px; margin: 8px 0; }}
+        /* TIGHT FOOTER ALIGNMENT */
+        .amt-words {{ background: #fafafa; padding: 8px; border-left: 3px solid {primary}; font-style: italic; font-size: 11px; margin: 10px 0; }}
         
-        /* ALIGNED FOOTER LOGIC */
-        .footer {{ margin-top: auto; display: flex; justify-content: flex-end; padding-top: 5px; }}
+        .footer-aligned {{ display: flex; justify-content: flex-end; margin-top: 5px; }}
         .total-container {{ text-align: right; width: 220px; }}
         .grand-total {{ font-size: 26px; font-weight: bold; color: {primary}; margin: 0; }}
-        .sig-line {{ border-top: 1.5px solid #000; width: 100%; margin-top: 30px; }}
+        .sig-line {{ border-top: 1.5px solid #000; width: 100%; margin-top: 25px; }}
 
         @media print {{
             header, footer, .stAppHeader, .stDecoration, .stToolbar {{ display: none !important; }}
@@ -148,7 +146,7 @@ html_template = f"""
             <strong>In Words:</strong> ##WORDS##
         </div>
 
-        <div class="footer">
+        <div class="footer-aligned">
             <div class="total-container">
                 <div class="label">Amount Payable</div>
                 <div class="grand-total">₹ ##AMT##</div>
