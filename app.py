@@ -74,7 +74,6 @@ st.sidebar.header("📊 Invoice Data")
 inv_no = st.sidebar.text_input("Invoice #", "INV-2026-001")
 inv_date = st.sidebar.date_input("Date", datetime.now())
 
-# --- DISCOUNT & TAX (optional) ---
 col_disc, col_tax = st.sidebar.columns(2)
 with col_disc:
     discount_type = st.selectbox("Discount", ["None", "Flat ₹", "%"], index=0)
@@ -88,7 +87,6 @@ with col_tax:
 st.sidebar.markdown("---")
 st.sidebar.header("📦 Line Items")
 
-# Render line items
 for i, item in enumerate(st.session_state.line_items):
     cols = st.sidebar.columns([5, 1, 3, 1])
     with cols[0]:
@@ -112,19 +110,16 @@ st.sidebar.button("➕ Add Line Item", on_click=add_item, use_container_width=Tr
 
 # --- CALCULATIONS ---
 subtotal = sum(item["amt"] for item in st.session_state.line_items)
-
 discount_amount = 0.0
 if discount_type == "Flat ₹":
     discount_amount = discount_val
 elif discount_type == "%":
     discount_amount = subtotal * (discount_val / 100)
-
 tax_amount = 0.0
 if tax_type == "Flat ₹":
     tax_amount = tax_val
 elif tax_type == "%":
     tax_amount = (subtotal - discount_amount) * (tax_val / 100)
-
 grand_total = subtotal - discount_amount + tax_amount
 
 st.sidebar.markdown("---")
@@ -210,19 +205,143 @@ if discount_amount > 0 or tax_amount > 0:
                 <span>Tax ({tax_type})</span>
                 <span>+ ₹ {tax_amount:,.2f}</span>
             </div>"""
-    summary_html += """
-        </div>
-    </div>"""
+    summary_html += "</div></div>"
 
-# --- HTML TEMPLATE ---
-html_template = f"""
+# --- CLEAN PRINT-ONLY HTML (no Streamlit chrome) ---
+print_only_html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@400;600;700&family=Montserrat:wght@400;600;700&family=Playfair+Display:wght@400;700&family=JetBrains+Mono&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {{ box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; padding: 0; }}
+        @page {{
+            size: {page_w_mm}mm {page_h_mm}mm;
+            margin: 0;
+        }}
+        body {{
+            background: white; margin: 0; padding: 0;
+            font-family: {selected_font};
+        }}
+        .invoice-card {{
+            background: white; width: {page_w_mm}mm; min-height: {page_h_mm}mm;
+            padding: {padding_mm}mm; display: flex; flex-direction: column;
+            border-top: {border_w}px solid {primary};
+        }}
+        .header {{
+            display: flex; justify-content: {h_align}; align-items: center;
+            margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #eee;
+            {f"text-align:center;flex-direction:column;" if h_align == 'center' else ""}
+        }}
+        .co-title {{ color: {primary}; font-size: {co_title_size}px; font-weight: 700; text-transform: uppercase; margin: 0; line-height: 1.1; }}
+        .label {{ color: {primary}; font-size: {label_size}px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 2px; }}
+        .table {{ width: 100%; border-collapse: collapse; margin-top: 4px; }}
+        .table th {{
+            background: {primary}; color: white; text-align: left;
+            padding: 8px 10px; font-size: {table_head_size}px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }}
+        .table th:last-child {{ text-align: right; }}
+        .table td {{ padding: 8px 10px; border-bottom: 1px solid #eee; font-size: {table_font_size}px; }}
+        .table td:last-child {{ text-align: right; }}
+        .table tr:last-child td {{ border-bottom: 2px solid {primary}; }}
+        .amt-words {{
+            background: {bg_light}; padding: 8px 10px;
+            border-left: 4px solid {primary}; font-style: italic;
+            font-size: {amt_words_size}px; margin: 14px 0;
+        }}
+        .footer-aligned {{ display: flex; justify-content: flex-end; margin-top: 8px; }}
+        .total-container {{ text-align: right; width: 220px; }}
+        .grand-total {{ font-size: {grand_total_size}px; font-weight: 700; color: {primary}; margin: 0; line-height: 1.1; }}
+        .sig-line {{ border-top: 2px solid #000; width: 100%; margin-top: 28px; }}
+        .items-count {{
+            display: inline-block; background: {bg_light}; color: {primary};
+            font-size: {table_head_size}px; padding: 2px 8px; border-radius: 10px;
+            font-weight: 600; margin-left: 8px;
+        }}
+    </style>
+</head>
+<body>
+    <div class="invoice-card">
+        <div class="header">
+            <div>
+                <div class="co-title">##PNAME##</div>
+                <div style="color:#555;font-size:{addr_size}px;margin-top:4px;">##PADDR##</div>
+            </div>
+            <div style="text-align:right;{'margin-top:12px;' if h_align == 'center' else ''}">
+                <strong style="font-size:{inv_num_size}px;color:{primary};"># ##INVNO##</strong><br>
+                <span style="font-size:{int(12*scale)}px;font-weight:600;color:#444;">##DATE##</span>
+            </div>
+        </div>
+
+        <div style="margin-bottom:16px;">
+            <div class="label">Billed To</div>
+            <div style="font-size:{billed_name_size}px;font-weight:700;margin-top:3px;">##CNAME##</div>
+            <div style="white-space:pre-wrap;color:#444;line-height:1.4;font-size:{addr_size}px;">##CADDR##</div>
+        </div>
+
+        <div style="display:flex;align-items:center;margin-bottom:6px;">
+            <div class="label" style="margin-bottom:0;">Item Details</div>
+            <span class="items-count">##COUNT## items</span>
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th style="width:65%;">Description</th>
+                    <th style="width:35%;">Amount (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {table_rows_html}
+            </tbody>
+        </table>
+
+        {summary_html}
+
+        <div class="amt-words">
+            <strong>Amount in Words:</strong> ##WORDS##
+        </div>
+
+        <div class="footer-aligned">
+            <div class="total-container">
+                <div class="label">Grand Total</div>
+                <div class="grand-total">₹ ##GRAND##</div>
+                <div class="sig-line"></div>
+                <div style="font-weight:700;font-size:{int(11*scale)}px;margin-top:5px;">Authorized Signatory</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {{
+            window.print();
+            // Optional: close the tab after printing
+            // setTimeout(function() {{ window.close(); }}, 500);
+        }};
+    </script>
+</body>
+</html>
+"""
+
+print_only_html = print_only_html.replace("##PNAME##", p_name) \
+    .replace("##PADDR##", p_addr) \
+    .replace("##CNAME##", c_name) \
+    .replace("##CADDR##", c_addr) \
+    .replace("##INVNO##", inv_no) \
+    .replace("##DATE##", inv_date.strftime("%d %b, %Y")) \
+    .replace("##COUNT##", str(len(st.session_state.line_items))) \
+    .replace("##WORDS##", number_to_words(grand_total)) \
+    .replace("##GRAND##", f"{grand_total:,.2f}")
+
+# --- PREVIEW HTML (with print button that opens clean window) ---
+preview_html = f"""
 <!DOCTYPE html>
 <html>
 <head>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@400;600;700&family=Montserrat:wght@400;600;700&family=Playfair+Display:wght@400;700&family=JetBrains+Mono&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * {{ box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
-        @page {{ size: {page_w_mm}mm {page_h_mm}mm; margin: 0; }}
         body {{
             background: #e8eaed; margin: 0; padding: 20px;
             font-family: {selected_font};
@@ -258,7 +377,6 @@ html_template = f"""
         .table td {{ padding: 8px 10px; border-bottom: 1px solid #eee; font-size: {table_font_size}px; }}
         .table td:last-child {{ text-align: right; }}
         .table tr:last-child td {{ border-bottom: 2px solid {primary}; }}
-
         .amt-words {{
             background: {bg_light}; padding: 8px 10px;
             border-left: 4px solid {primary}; font-style: italic;
@@ -279,12 +397,19 @@ html_template = f"""
             font-size: {table_head_size}px; padding: 2px 8px; border-radius: 10px;
             font-weight: 600; margin-left: 8px;
         }}
+        .print-btn {{
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 999;
+            background: {primary}; color: white; padding: 14px 50px; border: none;
+            border-radius: 6px; font-weight: 700; cursor: pointer; letter-spacing: 1px;
+            font-size: 13px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-family: {selected_font}; transition: transform 0.15s, box-shadow 0.15s;
+        }}
+        .print-btn:hover {{ transform: translateX(-50%) translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }}
         @media print {{
-            body {{ background: none; padding: 0; display: block; }}
+            body {{ background: none; padding: 0; }}
             .invoice-wrapper {{ transform: none !important; }}
             .invoice-card {{ box-shadow: none; width: {page_w_mm}mm; min-height: {page_h_mm}mm; border: none; border-top: {border_w}px solid {primary}; }}
-            .size-badge {{ display: none; }}
-            .no-print {{ display: none !important; }}
+            .size-badge, .print-btn {{ display: none !important; }}
         }}
     </style>
 </head>
@@ -292,7 +417,6 @@ html_template = f"""
     <div class="invoice-wrapper">
         <div class="invoice-card">
             <div class="size-badge">{sheet_size} · {orientation}</div>
-
             <div class="header">
                 <div>
                     <div class="co-title">##PNAME##</div>
@@ -303,36 +427,21 @@ html_template = f"""
                     <span style="font-size:{int(12*scale)}px;font-weight:600;color:#444;">##DATE##</span>
                 </div>
             </div>
-
             <div style="margin-bottom:16px;">
                 <div class="label">Billed To</div>
                 <div style="font-size:{billed_name_size}px;font-weight:700;margin-top:3px;">##CNAME##</div>
                 <div style="white-space:pre-wrap;color:#444;line-height:1.4;font-size:{addr_size}px;">##CADDR##</div>
             </div>
-
             <div style="display:flex;align-items:center;margin-bottom:6px;">
                 <div class="label" style="margin-bottom:0;">Item Details</div>
                 <span class="items-count">##COUNT## items</span>
             </div>
-
             <table class="table">
-                <thead>
-                    <tr>
-                        <th style="width:65%;">Description</th>
-                        <th style="width:35%;">Amount (₹)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {table_rows_html}
-                </tbody>
+                <thead><tr><th style="width:65%;">Description</th><th style="width:35%;">Amount (₹)</th></tr></thead>
+                <tbody>{table_rows_html}</tbody>
             </table>
-
             {summary_html}
-
-            <div class="amt-words">
-                <strong>Amount in Words:</strong> ##WORDS##
-            </div>
-
+            <div class="amt-words"><strong>Amount in Words:</strong> ##WORDS##</div>
             <div class="footer-aligned">
                 <div class="total-container">
                     <div class="label">Grand Total</div>
@@ -344,32 +453,32 @@ html_template = f"""
         </div>
     </div>
 
-    <div class="no-print" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:999;">
-        <button onclick="window.print()" style="
-            background:{primary};color:white;padding:14px 50px;border:none;
-            border-radius:6px;font-weight:700;cursor:pointer;letter-spacing:1px;
-            font-size:13px;box-shadow:0 4px 15px rgba(0,0,0,0.2);
-            font-family:{selected_font};
-        ">🖨️ PRINT INVOICE ({sheet_size} {orientation})</button>
-    </div>
+    <button class="print-btn" onclick="printClean()">🖨️ PRINT INVOICE ({sheet_size} {orientation})</button>
+
+    <script>
+        function printClean() {{
+            const cleanHTML = `{print_only_html.replace('`', '\\`').replace('</script>', '<\\/script>')}`;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(cleanHTML);
+            printWindow.document.close();
+        }}
+    </script>
 </body>
 </html>
 """
 
-# --- FINAL REPLACEMENT ---
-final_html = html_template.replace("##PNAME##", p_name) \
-                          .replace("##PADDR##", p_addr) \
-                          .replace("##CNAME##", c_name) \
-                          .replace("##CADDR##", c_addr) \
-                          .replace("##INVNO##", inv_no) \
-                          .replace("##DATE##", inv_date.strftime("%d %b, %Y")) \
-                          .replace("##COUNT##", str(len(st.session_state.line_items))) \
-                          .replace("##WORDS##", number_to_words(grand_total)) \
-                          .replace("##GRAND##", f"{grand_total:,.2f}")
+preview_html = preview_html.replace("##PNAME##", p_name) \
+    .replace("##PADDR##", p_addr) \
+    .replace("##CNAME##", c_name) \
+    .replace("##CADDR##", c_addr) \
+    .replace("##INVNO##", inv_no) \
+    .replace("##DATE##", inv_date.strftime("%d %b, %Y")) \
+    .replace("##COUNT##", str(len(st.session_state.line_items))) \
+    .replace("##WORDS##", number_to_words(grand_total)) \
+    .replace("##GRAND##", f"{grand_total:,.2f}")
 
 base_heights = {"A4": 1100, "A5": 800, "Letter": 1050}
 display_height = int(base_heights[sheet_size] * preview_scale) + 140
-# Add extra height for many line items
 display_height += max(0, (len(st.session_state.line_items) - 3) * 40)
 
-components.html(final_html, height=display_height, scrolling=True)
+components.html(preview_html, height=display_height, scrolling=True)
